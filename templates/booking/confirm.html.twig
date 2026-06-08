@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+{% block title %}{% if booking.status.value == 'waitlisted' %}On the waitlist{% else %}Booking confirmed{% endif %} — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="confirm-page">
+    <div class="confirm-container">
+        {% set waitlisted = booking.status.value == 'waitlisted' %}
+
+        <div class="confirm-tick {% if waitlisted %}confirm-tick--wait{% endif %}">
+            {% if waitlisted %}
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {% else %}
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+            {% endif %}
+        </div>
+
+        <h1>{% if waitlisted %}You're on the waitlist{% else %}You're booked in{% endif %}</h1>
+
+        <p class="confirm-desc">
+            {% if waitlisted %}
+                This session is full. We'll contact you at <strong>{{ booking.guestEmail }}</strong> the moment a seat opens for <strong>{{ module.title }}</strong>.
+            {% else %}
+                A confirmation and joining details for <strong>{{ module.title }}</strong> are on their way to <strong>{{ booking.guestEmail }}</strong>.
+            {% endif %}
+        </p>
+
+        <div class="receipt">
+            <div class="receipt-row">
+                <span class="receipt-key">Module</span>
+                <span class="receipt-val">{{ module.title }}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-key">Level</span>
+                <span class="receipt-val">{{ module.level.name }}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-key">Date</span>
+                <span class="receipt-val">{{ session.startsAt|date('j F Y') }}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-key">Time</span>
+                <span class="receipt-val">{{ session.formattedTime }}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-key">Format</span>
+                <span class="receipt-val">
+                    {% if session.format.value == 'online' %}Live online{% else %}In-person · {{ session.locationLabel }}{% endif %}
+                </span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-key">Name</span>
+                <span class="receipt-val">{{ booking.guestName }}</span>
+            </div>
+            {% if waitlisted %}
+            <div class="receipt-row">
+                <span class="receipt-key">Status</span>
+                <span class="receipt-val waitlist-status">On waitlist</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <a href="{{ path('home') }}" class="btn btn-primary">
+            Browse more modules
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+    </div>
+</div>
+{% endblock %}

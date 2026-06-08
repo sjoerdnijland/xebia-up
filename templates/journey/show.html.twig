@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% set activeCategory = category.slug %}
+
+{% block title %}{{ category.name }} Learning Journey — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="intro">
+    <div class="eyebrow">{{ category.tag }} · Skill matrix</div>
+    <h1>Build your {{ category.name }} learning journey</h1>
+    <p>Skill-centric modules mapped across four levels and every product role. Pick a module to see what you'll learn and book a seat in an upcoming session.</p>
+</div>
+
+<div class="toolbar">
+    <div class="filters">
+        <span class="filter-label">Focus a role</span>
+        <a href="{{ path('journey_show', {category: category.slug}) }}"
+           class="chip{% if not activeRole %} active{% endif %}">
+            All roles
+        </a>
+        {% for role in roles %}
+        <a href="{{ path('journey_show', {category: category.slug, role: role.slug}) }}"
+           class="chip{% if activeRole and activeRole.slug == role.slug %} active{% endif %}">
+            {{ role.name }}
+            <span class="chip-count">{{ roleCounts[role.slug]|default(0) }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    <div class="legend">
+        {% for level in levels %}
+        <span class="legend-item">
+            <span class="legend-dot" style="background: {{ level.colorHex }}"></span>
+            {{ level.name }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="pathway">
+    <div class="path-head">
+        {% if activeRole %}
+        <div class="path-avatar" style="background: #831B84">{{ activeRole.shortCode }}</div>
+        {% else %}
+        <div class="path-avatar path-avatar--all">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        {% endif %}
+        <div>
+            <h2>{% if activeRole %}{{ activeRole.name }} journey{% else %}All modules{% endif %}</h2>
+            <p>
+                {% if activeRole %}
+                    {{ totalModules }} module{% if totalModules != 1 %}s{% endif %} shaped for this persona, across four levels.
+                {% else %}
+                    {{ totalModules }} skill-centric module{% if totalModules != 1 %}s{% endif %} across four levels. Focus a role above to see a tailored path.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% for level in levels %}
+    {% set mods = byLevel[level.slug]|default([]) %}
+    <div class="path-level">
+        <div class="level-rail">
+            <div class="level-n">Level {{ level.depth }}</div>
+            <div class="level-name">{{ level.name }}</div>
+            <div class="level-spine" style="background: {{ level.colorHex }}"></div>
+            <div class="level-blurb">{{ level.blurb }}</div>
+        </div>
+        <div class="level-cards">
+            {% if mods|length == 0 %}
+            <div class="level-empty">No modules at this level{% if activeRole %} for this role{% endif %} yet.</div>
+            {% else %}
+            {% for module in mods %}
+            {% set nextSession = module.nextSession %}
+            <button class="mcard" data-module-slug="{{ module.slug }}" type="button">
+                <span class="mcard-tags">
+                    {% if module.isForAllRoles(totalRoles) %}
+                    <span class="core-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        Core for everyone
+                    </span>
+                    {% else %}
+                    <span class="role-tags">
+                        {% for role in module.roles %}
+                        <span class="rtag {% if activeRole and activeRole.slug == role.slug %}rtag--active{% endif %}">{{ role.shortCode }}</span>
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                </span>
+                <span class="mcard-title">{{ module.title }}</span>
+                <span class="mcard-desc">{{ module.description }}</span>
+                <span class="mcard-meta">
+                    {% if nextSession %}
+                    <span class="mcard-date">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {{ nextSession.startsAt|date('j M') }}
+                    </span>
+                    {% set seatsLeft = nextSession.seatsLeft %}
+                    <span class="seat-indicator">
+                        {% if seatsLeft == 0 %}
+                        <span class="seat-dot seat-dot--full"></span>Full
+                        {% elseif seatsLeft <= 3 %}
+                        <span class="seat-dot seat-dot--low"></span>{{ seatsLeft }} left
+                        {% else %}
+                        <span class="seat-dot seat-dot--ok"></span>{{ seatsLeft }} left
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </span>
+            </button>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

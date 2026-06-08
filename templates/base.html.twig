@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Xebia Up{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<header class="hdr">
+    <div class="hdr-inner">
+        <a href="/" class="brand" aria-label="Xebia Up — home">
+            <img src="/img/xebia-logo.svg" alt="Xebia" class="brand-logo" width="85" height="29">
+            <span class="brand-up">Up</span>
+        </a>
+
+        {% if categories is defined %}
+        <nav class="cat-tabs" aria-label="Categories">
+            {% for cat in categories %}
+            <a href="{{ path('journey_show', {category: cat.slug}) }}"
+               class="cat-tab{% if cat.slug == activeCategory|default('') %} active{% endif %}">
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </nav>
+        {% endif %}
+
+        <div class="hdr-right">
+            {# My learning placeholder for future account feature #}
+        </div>
+    </div>
+</header>
+
+<main class="main">
+    {% block body %}{% endblock %}
+</main>
+
+<footer class="ftr">
+    <div class="ftr-inner">
+        <div class="ftr-meta">
+            <span class="ftr-tag">Powered by</span>
+            <img src="/img/shape-ai.svg" alt="Shape AI" class="ftr-logo" width="336" height="65">
+        </div>
+        <p class="ftr-copy">&copy; {{ "now"|date("Y") }} Xebia. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Module slide-over panel -->
+<div class="panel-scrim" id="panelScrim" aria-hidden="true"></div>
+<div class="panel" id="modulePanel" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="panel-content" id="panelContent">
+        <div class="panel-loading">Loading…</div>
+    </div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

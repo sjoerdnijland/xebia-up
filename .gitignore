@@ -1,0 +1,25 @@
+# Symfony
+/vendor/
+/var/
+/.env.local
+/.env.local.php
+/.env.*.local
+
+# IDE / OS
+/.idea/
+/.vscode/
+*:Zone.Identifier
+.DS_Store
+Thumbs.db
+
+# Claude Code / AI tooling
+/.claude/
+/chats/
+
+# Design handoff bundle (kept locally for reference, not shipped)
+/project/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3

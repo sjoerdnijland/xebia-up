@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+{% block title %}Book a seat — {{ module.title }} — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="booking-page">
+    <div class="booking-container">
+        <a href="javascript:history.back()" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+        </a>
+
+        <div class="booking-module-info">
+            <div class="booking-pills">
+                <span class="level-pill" style="background: {{ module.level.colorHex }}">
+                    Level {{ module.level.depth }} · {{ module.level.name }}
+                </span>
+            </div>
+            <h1>{{ module.title }}</h1>
+        </div>
+
+        <div class="booking-session-card">
+            <div class="session-detail">
+                <div class="session-date-block">
+                    <span class="session-mo">{{ session.startsAt|date('M') }}</span>
+                    <span class="session-dy">{{ session.startsAt|date('j') }}</span>
+                    <span class="session-yr">{{ session.startsAt|date('Y') }}</span>
+                </div>
+                <div class="session-detail-info">
+                    <div class="session-format">
+                        {% if session.format.value == 'online' %}
+                        Live online
+                        {% else %}
+                        In-person · {{ session.locationLabel }}
+                        {% endif %}
+                    </div>
+                    <div class="session-time">{{ session.formattedTime }}</div>
+                    <div class="session-seats">
+                        {% set sl = seatsLeft %}
+                        {% if sl == 0 %}
+                        <span class="seat-badge seat-badge--full">Full — you'll join the waitlist</span>
+                        {% elseif sl <= 3 %}
+                        <span class="seat-badge seat-badge--low">{{ sl }} seat{% if sl != 1 %}s{% endif %} left</span>
+                        {% else %}
+                        <span class="seat-badge seat-badge--ok">{{ sl }} seats left</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-form-card">
+            <h2>Your details</h2>
+            <p class="form-intro">We'll send your booking confirmation and joining details to the email below.</p>
+
+            {{ form_start(form, {attr: {class: 'booking-form', novalidate: 'novalidate'}}) }}
+
+            <div class="form-group">
+                {{ form_label(form.guestName) }}
+                {{ form_widget(form.guestName, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.guestName) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.guestEmail) }}
+                {{ form_widget(form.guestEmail, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.guestEmail) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.guestPhone) }}
+                {{ form_widget(form.guestPhone, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.guestPhone) }}
+            </div>
+
+            <input type="hidden" name="session" value="{{ session.id }}">
+
+            <button type="submit" class="btn btn-primary btn-full">
+                {% if seatsLeft == 0 %}Join the waitlist{% else %}Book a seat{% endif %}
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

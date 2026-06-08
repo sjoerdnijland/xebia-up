@@ -1,0 +1,80 @@
+{% set level = module.level %}
+{% set category = module.categories.first %}
+
+<div class="panel-head">
+    <button class="panel-close" id="panelClose" type="button" aria-label="Close panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="panel-pills">
+        <span class="level-pill" style="background: {{ level.colorHex }}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Level {{ level.depth }} · {{ level.name }}
+        </span>
+        {% if category %}
+        <span class="cat-pill">{{ category.name }}</span>
+        {% endif %}
+    </div>
+    <h2 class="panel-title">{{ module.title }}</h2>
+    <p class="panel-desc">{{ module.description }}</p>
+</div>
+
+<div class="panel-body">
+    <div class="psec">
+        <h3>What you'll learn</h3>
+        {% for objective in module.objectives %}
+        <div class="obj-row">
+            <span class="obj-n">{{ loop.index }}</span>
+            <span>{{ objective.text }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="psec">
+        <h3>Built for</h3>
+        <div class="built-for-chips">
+            {% for role in module.roles %}
+            <span class="role-chip">{{ role.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="psec">
+        <h3>Choose a session</h3>
+        {% for session in module.sessions %}
+        {% set seatsLeft = session.seatsLeft %}
+        {% set isFull = seatsLeft == 0 %}
+        <a href="{{ path('module_book', {slug: module.slug, session: session.id}) }}"
+           class="sess-row{% if isFull %} sess-row--full{% endif %}">
+            <span class="sess-date">
+                <span class="sess-mo">{{ session.startsAt|date('M') }}</span>
+                <span class="sess-dy">{{ session.startsAt|date('j') }}</span>
+            </span>
+            <span class="sess-info">
+                <span class="sess-l1">
+                    {% if session.format.value == 'online' %}Live online{% else %}In-person · {{ session.locationLabel }}{% endif %}
+                </span>
+                <span class="sess-l2">
+                    {% if session.format.value == 'online' %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {% endif %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ session.formattedTime }}
+                </span>
+            </span>
+            <span class="sess-seats">
+                {% if isFull %}
+                <span class="waitlist-tag">Full · waitlist</span>
+                {% else %}
+                <span class="seats-n">{{ seatsLeft }}</span>
+                <span class="seats-lab">/ {{ session.capacity }} left</span>
+                {% endif %}
+            </span>
+            <span class="sess-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
