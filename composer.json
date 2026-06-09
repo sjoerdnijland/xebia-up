@@ -14,16 +14,16 @@
         "doctrine/orm": "^3.6.7",
         "dompdf/dompdf": "^3.1",
         "symfony/asset": "^7.4.8",
-        "symfony/console": "7.2.*",
+        "symfony/console": "^7.4",
         "symfony/doctrine-messenger": "^7.4.6",
-        "symfony/dotenv": "7.2.*",
+        "symfony/dotenv": "^7.4",
         "symfony/flex": "^2.11",
         "symfony/form": "^7.4.9",
-        "symfony/framework-bundle": "7.2.*",
-        "symfony/runtime": "7.2.*",
+        "symfony/framework-bundle": "^7.4",
+        "symfony/runtime": "^7.4",
         "symfony/twig-bundle": "^7.4.8",
         "symfony/validator": "^7.4.10",
-        "symfony/yaml": "7.2.*",
+        "symfony/yaml": "^7.4",
         "twig/extra-bundle": "^3.24"
     },
     "config": {
@@ -76,7 +76,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.2.*"
+            "require": "^7.4"
         }
     },
     "require-dev": {
