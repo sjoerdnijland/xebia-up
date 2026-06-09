@@ -550,29 +550,28 @@ body.panel-open { overflow: hidden; }
     font-size: 0.72rem; font-weight: 700;
 }
 
-/* Module card wrapper — flex column so the select button is always below the card */
-.mcard-wrap { display: flex; flex-direction: column; }
-.mcard-wrap .mcard { flex: 1; }
+/* Module card wrapper — select button overlays the card top-right */
+.mcard-wrap { position: relative; }
 .mcard-wrap--selected .mcard {
     border-color: var(--velvet);
     box-shadow: 0 0 0 2px rgba(86, 18, 87, 0.12);
 }
+/* Reserve space at the bottom so the + button doesn't overlap text */
+.mcard-wrap .mcard { padding-bottom: 48px; }
 
-.mcard-select-form { margin: 10px 0 0; }
+.mcard-select-form { position: absolute; bottom: 10px; right: 10px; margin: 0; }
 .mcard-select {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 999px;
-    background: var(--bg); color: var(--velvet);
-    border: 1px solid var(--line);
-    font-size: 0.82rem; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    padding: 0; border-radius: 50%;
+    background: var(--surface); color: var(--velvet);
+    border: 1px solid var(--velvet);
     transition: all 0.15s;
-    width: 100%; justify-content: center;
 }
-.mcard-select:hover { background: var(--velvet); color: #fff; border-color: var(--velvet); }
-.mcard-select--on {
-    background: var(--velvet); color: #fff; border-color: var(--velvet);
-}
+.mcard-select:hover { background: var(--velvet); color: #fff; }
+.mcard-select--on { background: var(--velvet); color: #fff; }
 .mcard-select--on:hover { background: var(--dark-velvet); border-color: var(--dark-velvet); }
+.mcard-select-label { display: none; }
 
 /* Detail panel — add to journey button */
 .panel-select-form { margin: 0; }
