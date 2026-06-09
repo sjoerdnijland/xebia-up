@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Xebia Up — Access</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <style>
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fafafa; margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+        .gate { width: 100%; max-width: 380px; padding: 40px 32px; background: #fff; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; }
+        .gate-logo { display: inline-flex; align-items: baseline; gap: 6px; margin-bottom: 28px; }
+        .gate-logo img { width: 85px; height: 29px; }
+        .gate-up { font-weight: 700; font-size: 20px; color: #561257; }
+        .gate h1 { font-size: 18px; font-weight: 600; margin: 0 0 6px; color: #1a1a1a; }
+        .gate p { color: #666; font-size: 14px; margin: 0 0 22px; }
+        .gate input[type=password] { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; margin-bottom: 12px; }
+        .gate input[type=password]:focus { outline: none; border-color: #561257; }
+        .gate button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #561257; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .gate button:hover { background: #7C1B7B; }
+        .gate-error { color: #b00020; font-size: 13px; margin: 0 0 12px; }
+    </style>
+</head>
+<body>
+<form class="gate" method="post" action="{{ path('site_access_login', {next: next}) }}">
+    <div class="gate-logo">
+        <img src="/img/xebia-logo.svg" alt="Xebia">
+        <span class="gate-up">Up</span>
+    </div>
+    <h1>Private preview</h1>
+    <p>Enter the access password to continue.</p>
+    {% if error %}
+        <p class="gate-error">{{ error }}</p>
+    {% endif %}
+    <input type="password" name="password" placeholder="Password" autofocus required>
+    <button type="submit">Enter</button>
+</form>
+</body>
+</html>

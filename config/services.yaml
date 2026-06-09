@@ -1,9 +1,12 @@
 parameters:
+    site_access.password: 'academy2026'
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            string $siteAccessPassword: '%site_access.password%'
 
     App\:
         resource: '../src/'
