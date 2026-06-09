@@ -23,3 +23,13 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###

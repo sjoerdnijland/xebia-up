@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Category;
 use App\Entity\Module;
+use App\Entity\ModuleType;
 use App\Entity\Role;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -15,7 +16,7 @@ class ModuleRepository extends ServiceEntityRepository
         parent::__construct($registry, Module::class);
     }
 
-    public function findByCategory(Category $category, ?Role $role = null): array
+    public function findByCategory(Category $category, ?Role $role = null, ?ModuleType $type = null): array
     {
         $qb = $this->createQueryBuilder('m')
             ->join('m.categories', 'cat')
@@ -31,6 +32,11 @@ class ModuleRepository extends ServiceEntityRepository
                ->setParameter('role', $role);
         }
 
+        if ($type !== null) {
+            $qb->andWhere('m.type = :type')
+               ->setParameter('type', $type);
+        }
+
         return $qb->getQuery()->getResult();
     }
 
@@ -43,6 +49,24 @@ class ModuleRepository extends ServiceEntityRepository
             ->where('cat = :category')
             ->setParameter('category', $category)
             ->groupBy('r.slug')
+            ->getQuery()->getResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[$row['slug']] = (int) $row['cnt'];
+        }
+        return $counts;
+    }
+
+    public function countByCategoryAndType(Category $category): array
+    {
+        $rows = $this->createQueryBuilder('m')
+            ->select('t.slug, COUNT(m.id) as cnt')
+            ->join('m.categories', 'cat')
+            ->join('m.type', 't')
+            ->where('cat = :category')
+            ->setParameter('category', $category)
+            ->groupBy('t.slug')
             ->getQuery()->getResult();
 
         $counts = [];

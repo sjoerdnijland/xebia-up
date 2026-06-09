@@ -13,6 +13,9 @@
         {% if category %}
         <span class="cat-pill">{{ category.name }}</span>
         {% endif %}
+        {% if module.type %}
+        <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
+        {% endif %}
     </div>
     <h2 class="panel-title">{{ module.title }}</h2>
     <p class="panel-desc">{{ module.description }}</p>
@@ -38,6 +41,31 @@
         </div>
     </div>
 
+    {% if journey.on %}
+    {% set isSelected = journey.isSelected(module.slug) %}
+    <div class="psec">
+        <h3>Add to journey</h3>
+        <form method="post"
+              action="{{ path(isSelected ? 'journey_deselect' : 'journey_select') }}"
+              class="panel-select-form"
+              data-select-form>
+            <input type="hidden" name="slug" value="{{ module.slug }}">
+            <button type="submit"
+                    class="panel-select{% if isSelected %} panel-select--on{% endif %}"
+                    data-select-button
+                    data-slug="{{ module.slug }}"
+                    aria-pressed="{{ isSelected ? 'true' : 'false' }}">
+                {% if isSelected %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span class="panel-select-label">Selected · click to remove</span>
+                {% else %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span class="panel-select-label">Add this module to the journey</span>
+                {% endif %}
+            </button>
+        </form>
+    </div>
+    {% else %}
     <div class="psec">
         <h3>Choose a session</h3>
         {% for session in module.sessions %}
@@ -77,4 +105,5 @@
         </a>
         {% endfor %}
     </div>
+    {% endif %}
 </div>

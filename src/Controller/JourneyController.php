@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\CategoryRepository;
 use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
+use App\Repository\ModuleTypeRepository;
 use App\Repository\RoleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,7 @@ class JourneyController extends AbstractController
         LevelRepository $levelRepo,
         RoleRepository $roleRepo,
         ModuleRepository $moduleRepo,
+        ModuleTypeRepository $typeRepo,
     ): Response {
         $cat = $categoryRepo->findOneBy(['slug' => $category]);
         if (!$cat) {
@@ -36,11 +38,16 @@ class JourneyController extends AbstractController
         $roleSlug = $request->query->get('role');
         $activeRole = $roleSlug ? $roleRepo->findOneBy(['slug' => $roleSlug]) : null;
 
+        $typeSlug = $request->query->get('type');
+        $activeType = $typeSlug ? $typeRepo->findOneBy(['slug' => $typeSlug]) : null;
+
         $allCategories = $categoryRepo->findAllOrdered();
         $levels = $levelRepo->findAllOrdered();
         $roles = $roleRepo->findAllOrdered();
-        $modules = $moduleRepo->findByCategory($cat, $activeRole);
+        $types = $typeRepo->findAllOrdered();
+        $modules = $moduleRepo->findByCategory($cat, $activeRole, $activeType);
         $roleCounts = $moduleRepo->countByCategoryAndRole($cat);
+        $typeCounts = $moduleRepo->countByCategoryAndType($cat);
 
         // Group modules by level
         $byLevel = [];
@@ -58,9 +65,12 @@ class JourneyController extends AbstractController
             'categories' => $allCategories,
             'levels' => $levels,
             'roles' => $roles,
+            'types' => $types,
             'byLevel' => $byLevel,
             'activeRole' => $activeRole,
+            'activeType' => $activeType,
             'roleCounts' => $roleCounts,
+            'typeCounts' => $typeCounts,
             'totalModules' => count($modules),
             'totalRoles' => $totalRoles,
         ]);

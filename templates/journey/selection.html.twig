@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Selected modules — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="intro">
+    <div class="eyebrow">In-company · Selection</div>
+    <h1>Your client's learning journey</h1>
+    <p>
+        {% if totalSelected == 0 %}
+            No modules selected yet. Head back to a category and add modules to build a journey.
+        {% else %}
+            {{ totalSelected }} module{% if totalSelected != 1 %}s{% endif %} selected, grouped by category. Drag to reorder.
+        {% endif %}
+    </p>
+</div>
+
+<div class="meta-grid">
+    <form class="client-form" data-meta-form data-meta-endpoint="{{ path('journey_client') }}">
+        <label for="clientName" class="client-label">Client</label>
+        <input type="text"
+               id="clientName"
+               name="name"
+               class="client-input"
+               placeholder="e.g. Acme Corp"
+               value="{{ clientName }}"
+               maxlength="120"
+               autocomplete="off">
+        <span class="client-status" data-meta-status></span>
+    </form>
+    <form class="client-form" data-meta-form data-meta-endpoint="{{ path('journey_role') }}">
+        <label for="roleName" class="client-label">Role</label>
+        <input type="text"
+               id="roleName"
+               name="name"
+               class="client-input"
+               placeholder="e.g. Sales Engineer"
+               value="{{ roleName }}"
+               maxlength="120"
+               autocomplete="off">
+        <span class="client-status" data-meta-status></span>
+    </form>
+</div>
+
+{% if totalSelected == 0 %}
+<div class="sel-empty">
+    <p>Pick a category to start adding modules:</p>
+    <div class="sel-empty-cats">
+        {% for cat in categories %}
+        <a href="{{ path('journey_show', {category: cat.slug}) }}" class="chip">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="sel-actions">
+    <a href="{{ path('journey_selection_pdf') }}" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+    </a>
+    <form method="post" action="{{ path('journey_clear') }}" onsubmit="return confirm('Clear the role and all selected modules? The client name is kept.');">
+        <input type="hidden" name="_next" value="{{ path('journey_selection') }}">
+        <button type="submit" class="btn-ghost">Clear &amp; start next role</button>
+    </form>
+</div>
+
+{% for category in categories %}
+    {% set mods = byCategory[category.slug] | default([]) %}
+    {% if mods is not empty %}
+    <section class="sel-cat">
+        <h2 class="sel-cat-title">
+            {{ category.name }}
+            <span class="sel-cat-tag">{{ mods|length }} module{% if mods|length != 1 %}s{% endif %}</span>
+        </h2>
+        <ul class="sel-list" data-sortable>
+            {% for module in mods %}
+            <li class="sel-row" data-slug="{{ module.slug }}">
+                <span class="sel-handle" aria-label="Drag to reorder" title="Drag to reorder">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+                </span>
+                <span class="sel-tags">
+                    <span class="sel-level-chip" style="background: {{ module.level.tintHex }}; color: {{ module.level.colorHex }}; border-color: {{ module.level.colorHex }};">
+                        L{{ module.level.depth }}
+                    </span>
+                    {% if module.type %}
+                    <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
+                    {% endif %}
+                </span>
+                <a href="#" class="sel-row-title" data-module-slug="{{ module.slug }}">
+                    {{ module.title }}
+                </a>
+                <span class="sel-row-desc">{{ module.description }}</span>
+                <form method="post" action="{{ path('journey_deselect') }}" class="sel-row-remove" data-select-form>
+                    <input type="hidden" name="slug" value="{{ module.slug }}">
+                    <input type="hidden" name="_next" value="{{ path('journey_selection') }}">
+                    <button type="submit" class="btn-remove" data-select-button data-slug="{{ module.slug }}" aria-label="Remove module">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+{% endfor %}
+{% endif %}
+
+<script src="/js/vendor/sortable.min.js"></script>
+{% endblock %}

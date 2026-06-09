@@ -7,6 +7,7 @@ use App\Enum\BookingStatus;
 use App\Form\BookingType;
 use App\Repository\ModuleRepository;
 use App\Repository\SessionRepository;
+use App\Service\JourneyBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +23,12 @@ class BookingController extends AbstractController
         ModuleRepository $moduleRepo,
         SessionRepository $sessionRepo,
         EntityManagerInterface $em,
+        JourneyBuilder $journey,
     ): Response {
+        if ($journey->isOn()) {
+            return $this->redirectToRoute('module_show', ['slug' => $slug]);
+        }
+
         $module = $moduleRepo->findOneBy(['slug' => $slug]);
         if (!$module) {
             throw $this->createNotFoundException('Module not found');

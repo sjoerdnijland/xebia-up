@@ -7,6 +7,7 @@ use App\Entity\Category;
 use App\Entity\Level;
 use App\Entity\Module;
 use App\Entity\ModuleObjective;
+use App\Entity\ModuleType;
 use App\Entity\Role;
 use App\Entity\Session;
 use App\Enum\BookingStatus;
@@ -21,10 +22,26 @@ class AppFixtures extends Fixture
         $levels = $this->createLevels($manager);
         $categories = $this->createCategories($manager);
         $roles = $this->createRoles($manager);
+        $types = $this->createModuleTypes($manager);
         $manager->flush();
 
-        $this->createModules($manager, $levels, $categories, $roles);
+        $this->createModules($manager, $levels, $categories, $roles, $types);
         $manager->flush();
+    }
+
+    private function createModuleTypes(ObjectManager $manager): array
+    {
+        $data = [
+            ['trainer-led', 'Trainer-led', 1],
+            ['self-paced',  'Self-paced',  2],
+        ];
+        $types = [];
+        foreach ($data as [$slug, $name, $pos]) {
+            $t = (new ModuleType())->setSlug($slug)->setName($name)->setPosition($pos);
+            $manager->persist($t);
+            $types[$slug] = $t;
+        }
+        return $types;
     }
 
     private function createLevels(ObjectManager $manager): array
@@ -83,10 +100,11 @@ class AppFixtures extends Fixture
         return $roles;
     }
 
-    private function createModules(ObjectManager $manager, array $levels, array $cats, array $roles): void
+    private function createModules(ObjectManager $manager, array $levels, array $cats, array $roles, array $types): void
     {
         $ALL    = ['pm','po','pjm','ba','ux','dev'];
         $NONTECH = ['pm','po','pjm','ba','ux'];
+        $SELF_PACED = ['ai-f-1','ai-f-2','ai-f-3','cl-f-1','cl-f-2','ag-f-1','pr-f-1','pr-f-2'];
 
         $modules = [
             /* ===== AI ===== */
@@ -402,6 +420,7 @@ class AppFixtures extends Fixture
                 ->setSlug($id)
                 ->setDescription($desc)
                 ->setLevel($levels[$levelSlug])
+                ->setType(in_array($id, $SELF_PACED, true) ? $types['self-paced'] : $types['trainer-led'])
                 ->setPosition($pos);
 
             $module->addCategory($cats[$catSlug]);

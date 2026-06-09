@@ -28,7 +28,21 @@
         {% endif %}
 
         <div class="hdr-right">
-            {# My learning placeholder for future account feature #}
+            <form method="post" action="{{ path('in_company_toggle') }}" class="mode-form">
+                <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
+                <button type="submit" class="mode-toggle{% if journey.on %} mode-toggle--on{% endif %}"
+                        aria-pressed="{{ journey.on ? 'true' : 'false' }}"
+                        title="{% if journey.on %}Switch back to public mode{% else %}Switch to in-company mode{% endif %}">
+                    <span class="mode-dot"></span>
+                    <span class="mode-label">In-company</span>
+                </button>
+            </form>
+            {% if journey.on %}
+            <a href="{{ path('journey_selection') }}" class="selection-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Selected <span class="selection-count">{{ journey.count }}</span>
+            </a>
+            {% endif %}
         </div>
     </div>
 </header>

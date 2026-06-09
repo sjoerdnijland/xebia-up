@@ -29,6 +29,10 @@ class Module
     #[ORM\JoinColumn(nullable: false)]
     private Level $level;
 
+    #[ORM\ManyToOne(targetEntity: ModuleType::class, inversedBy: 'modules')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ModuleType $type = null;
+
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'modules')]
     #[ORM\JoinTable(name: 'module_category')]
     private Collection $categories;
@@ -65,6 +69,8 @@ class Module
     public function setDescription(string $description): static { $this->description = $description; return $this; }
     public function getLevel(): Level { return $this->level; }
     public function setLevel(Level $level): static { $this->level = $level; return $this; }
+    public function getType(): ?ModuleType { return $this->type; }
+    public function setType(?ModuleType $type): static { $this->type = $type; return $this; }
     public function getCategories(): Collection { return $this->categories; }
     public function addCategory(Category $category): static { if (!$this->categories->contains($category)) { $this->categories->add($category); } return $this; }
     public function getRoles(): Collection { return $this->roles; }

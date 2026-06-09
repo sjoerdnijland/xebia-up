@@ -12,28 +12,38 @@
 </div>
 
 <div class="toolbar">
-    <div class="filters">
-        <span class="filter-label">Focus a role</span>
-        <a href="{{ path('journey_show', {category: category.slug}) }}"
-           class="chip{% if not activeRole %} active{% endif %}">
-            All roles
-        </a>
-        {% for role in roles %}
-        <a href="{{ path('journey_show', {category: category.slug, role: role.slug}) }}"
-           class="chip{% if activeRole and activeRole.slug == role.slug %} active{% endif %}">
-            {{ role.name }}
-            <span class="chip-count">{{ roleCounts[role.slug]|default(0) }}</span>
-        </a>
-        {% endfor %}
-    </div>
-    <div class="legend">
-        {% for level in levels %}
-        <span class="legend-item">
-            <span class="legend-dot" style="background: {{ level.colorHex }}"></span>
-            {{ level.name }}
-        </span>
-        {% endfor %}
-    </div>
+    <fieldset class="filter-group">
+        <legend class="filter-group-title">Role</legend>
+        <div class="filter-chips">
+            <a href="{{ path('journey_show', {category: category.slug, type: activeType ? activeType.slug : null}) }}"
+               class="chip{% if not activeRole %} active{% endif %}">
+                All roles
+            </a>
+            {% for role in roles %}
+            <a href="{{ path('journey_show', {category: category.slug, role: role.slug, type: activeType ? activeType.slug : null}) }}"
+               class="chip{% if activeRole and activeRole.slug == role.slug %} active{% endif %}">
+                {{ role.name }}
+                <span class="chip-count">{{ roleCounts[role.slug]|default(0) }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </fieldset>
+    <fieldset class="filter-group">
+        <legend class="filter-group-title">Format</legend>
+        <div class="filter-chips">
+            <a href="{{ path('journey_show', {category: category.slug, role: activeRole ? activeRole.slug : null}) }}"
+               class="chip{% if not activeType %} active{% endif %}">
+                All formats
+            </a>
+            {% for type in types %}
+            <a href="{{ path('journey_show', {category: category.slug, role: activeRole ? activeRole.slug : null, type: type.slug}) }}"
+               class="chip{% if activeType and activeType.slug == type.slug %} active{% endif %}">
+                {{ type.name }}
+                <span class="chip-count">{{ typeCounts[type.slug]|default(0) }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </fieldset>
 </div>
 
 <div class="pathway">
@@ -72,42 +82,72 @@
             {% else %}
             {% for module in mods %}
             {% set nextSession = module.nextSession %}
-            <button class="mcard" data-module-slug="{{ module.slug }}" type="button">
-                <span class="mcard-tags">
-                    {% if module.isForAllRoles(totalRoles) %}
-                    <span class="core-badge">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        Core for everyone
-                    </span>
-                    {% else %}
-                    <span class="role-tags">
-                        {% for role in module.roles %}
-                        <span class="rtag {% if activeRole and activeRole.slug == role.slug %}rtag--active{% endif %}">{{ role.shortCode }}</span>
-                        {% endfor %}
-                    </span>
-                    {% endif %}
-                </span>
-                <span class="mcard-title">{{ module.title }}</span>
-                <span class="mcard-desc">{{ module.description }}</span>
-                <span class="mcard-meta">
-                    {% if nextSession %}
-                    <span class="mcard-date">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        {{ nextSession.startsAt|date('j M') }}
-                    </span>
-                    {% set seatsLeft = nextSession.seatsLeft %}
-                    <span class="seat-indicator">
-                        {% if seatsLeft == 0 %}
-                        <span class="seat-dot seat-dot--full"></span>Full
-                        {% elseif seatsLeft <= 3 %}
-                        <span class="seat-dot seat-dot--low"></span>{{ seatsLeft }} left
+            {% set isSelected = journey.isSelected(module.slug) %}
+            <div class="mcard-wrap{% if journey.on and isSelected %} mcard-wrap--selected{% endif %}">
+                <button class="mcard" data-module-slug="{{ module.slug }}" type="button">
+                    <span class="mcard-tags">
+                        {% if module.isForAllRoles(totalRoles) %}
+                        <span class="core-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            Core for everyone
+                        </span>
                         {% else %}
-                        <span class="seat-dot seat-dot--ok"></span>{{ seatsLeft }} left
+                        <span class="role-tags">
+                            {% for role in module.roles %}
+                            <span class="rtag {% if activeRole and activeRole.slug == role.slug %}rtag--active{% endif %}">{{ role.shortCode }}</span>
+                            {% endfor %}
+                        </span>
                         {% endif %}
                     </span>
+                    <span class="mcard-title">{{ module.title }}</span>
+                    {% if module.type %}
+                    <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}
-                </span>
-            </button>
+                    <span class="mcard-desc">{{ module.description }}</span>
+                    <span class="mcard-meta">
+                        {% if journey.on %}
+                        {# select toggle rendered below as a sibling so it isn't a nested button #}
+                        {% elseif nextSession %}
+                        <span class="mcard-date">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            {{ nextSession.startsAt|date('j M') }}
+                        </span>
+                        {% set seatsLeft = nextSession.seatsLeft %}
+                        <span class="seat-indicator">
+                            {% if seatsLeft == 0 %}
+                            <span class="seat-dot seat-dot--full"></span>Full
+                            {% elseif seatsLeft <= 3 %}
+                            <span class="seat-dot seat-dot--low"></span>{{ seatsLeft }} left
+                            {% else %}
+                            <span class="seat-dot seat-dot--ok"></span>{{ seatsLeft }} left
+                            {% endif %}
+                        </span>
+                        {% endif %}
+                    </span>
+                </button>
+                {% if journey.on %}
+                <form method="post"
+                      action="{{ path(isSelected ? 'journey_deselect' : 'journey_select') }}"
+                      class="mcard-select-form"
+                      data-select-form>
+                    <input type="hidden" name="slug" value="{{ module.slug }}">
+                    <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
+                    <button type="submit"
+                            class="mcard-select{% if isSelected %} mcard-select--on{% endif %}"
+                            data-select-button
+                            data-slug="{{ module.slug }}"
+                            aria-pressed="{{ isSelected ? 'true' : 'false' }}">
+                        {% if isSelected %}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span class="mcard-select-label">Selected</span>
+                        {% else %}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span class="mcard-select-label">Add to journey</span>
+                        {% endif %}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
             {% endfor %}
             {% endif %}
         </div>
