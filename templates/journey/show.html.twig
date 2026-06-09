@@ -83,7 +83,7 @@
             {% for module in mods %}
             {% set nextSession = module.nextSession %}
             {% set isSelected = journey.isSelected(module.slug) %}
-            <div class="mcard-wrap{% if journey.on and isSelected %} mcard-wrap--selected{% endif %}">
+            <div class="mcard-wrap{% if journey.on %} mcard-wrap--ic{% endif %}{% if journey.on and isSelected %} mcard-wrap--selected{% endif %}">
                 <button class="mcard" data-module-slug="{{ module.slug }}" type="button">
                     <span class="mcard-tags">
                         {% if module.isForAllRoles(totalRoles) %}
@@ -104,10 +104,8 @@
                     <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}
                     <span class="mcard-desc">{{ module.description }}</span>
+                    {% if not journey.on and nextSession %}
                     <span class="mcard-meta">
-                        {% if journey.on %}
-                        {# select toggle rendered below as a sibling so it isn't a nested button #}
-                        {% elseif nextSession %}
                         <span class="mcard-date">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             {{ nextSession.startsAt|date('j M') }}
@@ -122,8 +120,8 @@
                             <span class="seat-dot seat-dot--ok"></span>{{ seatsLeft }} left
                             {% endif %}
                         </span>
-                        {% endif %}
                     </span>
+                    {% endif %}
                 </button>
                 {% if journey.on %}
                 <form method="post"
