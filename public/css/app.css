@@ -92,6 +92,81 @@ p  { color: var(--ink2); font-size: 1rem; }
 .intro h1 { margin-bottom: 14px; }
 .intro p  { font-size: 1.0625rem; color: var(--ink2); max-width: 560px; }
 
+/* ---- AI Skills & Capabilities model section ---- */
+.model-intro {
+    padding: 48px 0 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 48px;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+}
+.model-intro-copy { min-width: 0; }
+.model-intro-title { margin-bottom: 16px; }
+.model-intro-lede {
+    font-size: 1.0625rem; color: var(--ink2);
+    max-width: 60ch; margin-bottom: 24px;
+}
+.model-legend {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 24px;
+    padding: 0; margin: 0;
+}
+.model-legend-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.9375rem; color: var(--ink);
+    line-height: 1.35;
+}
+.model-legend-swatch {
+    flex-shrink: 0;
+    width: 14px; height: 14px; border-radius: 3px;
+    margin-top: 3px;
+}
+.model-legend-label { font-weight: 600; }
+.model-legend-kind {
+    font-weight: 500; color: var(--ink3); font-size: 0.875rem;
+}
+.model-intro-wheel {
+    display: flex; justify-content: center; align-items: center;
+}
+.model-intro-wheel img {
+    width: 100%; max-width: 520px; height: auto;
+}
+@media (max-width: 880px) {
+    .model-intro {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        padding: 32px 0 16px;
+    }
+    .model-legend { grid-template-columns: minmax(0, 1fr); }
+    .model-intro-wheel { order: -1; }
+    .model-intro-wheel img { max-width: 380px; }
+}
+
+/* Capability tag on module cards */
+.cap-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    align-self: flex-start;
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 3px 9px 3px 7px;
+    border-radius: 20px;
+    color: var(--cap-color, var(--ink));
+    background: color-mix(in srgb, var(--cap-color, var(--ink)) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cap-color, var(--ink)) 30%, transparent);
+}
+.cap-tag-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--cap-color, var(--ink));
+    flex-shrink: 0;
+}
+.cap-tag-label { white-space: nowrap; }
+.cap-tag--enabler {
+    background: color-mix(in srgb, var(--cap-color, var(--ink)) 12%, transparent);
+}
+
 /* ---- Toolbar ---- */
 .toolbar {
     display: grid;

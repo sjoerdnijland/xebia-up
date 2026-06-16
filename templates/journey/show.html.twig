@@ -5,6 +5,37 @@
 {% block title %}{{ category.name }} Learning Journey — Xebia Up{% endblock %}
 
 {% block body %}
+{% if capabilities|default([])|length > 0 %}
+<section class="model-intro">
+    <div class="model-intro-copy">
+        <div class="eyebrow">One model, one language</div>
+        <h1 class="model-intro-title">The AI Skills &amp; Capabilities model</h1>
+        <p class="model-intro-lede">
+            A durable human core, the capabilities for working and leading with AI, and three cross-cutting
+            capabilities — shown as arrows — that run through everything. Every training module maps to the
+            model — so a learner can see exactly which capabilities a session grows. The colours below key
+            every module and journey.
+        </p>
+        <ul class="model-legend">
+            {% for key, cap in capabilities %}
+            <li class="model-legend-item">
+                <span class="model-legend-swatch" style="background: {{ cap.color }}"></span>
+                <span class="model-legend-label">
+                    {{ cap.name }}{% if cap.kind == 'enabler' %} <span class="model-legend-kind">· enabler</span>{% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="model-intro-wheel">
+        <img src="/img/skills-capabilities-wheel.svg"
+             alt="AI Skills &amp; Capabilities wheel"
+             width="520" height="520"
+             loading="lazy">
+    </div>
+</section>
+{% endif %}
+
 <div class="intro">
     <div class="eyebrow">{{ category.tag }} · Skill matrix</div>
     <h1>Build your {{ category.name }} learning journey</h1>
@@ -100,6 +131,16 @@
                         {% endif %}
                     </span>
                     <span class="mcard-title">{{ module.title }}</span>
+                    {% set capKey = moduleCapabilities[module.slug]|default(null) %}
+                    {% if capKey and capabilities[capKey] is defined %}
+                    {% set cap = capabilities[capKey] %}
+                    <span class="cap-tag cap-tag--{{ cap.kind }}"
+                          style="--cap-color: {{ cap.color }}"
+                          title="{{ cap.name }}">
+                        <span class="cap-tag-dot" aria-hidden="true"></span>
+                        <span class="cap-tag-label">{{ cap.tag }}</span>
+                    </span>
+                    {% endif %}
                     {% if module.type %}
                     <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}

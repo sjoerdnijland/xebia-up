@@ -7,6 +7,7 @@ use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
 use App\Repository\ModuleTypeRepository;
 use App\Repository\RoleRepository;
+use App\Service\AiCapabilityMap;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +30,7 @@ class JourneyController extends AbstractController
         RoleRepository $roleRepo,
         ModuleRepository $moduleRepo,
         ModuleTypeRepository $typeRepo,
+        AiCapabilityMap $capabilityMap,
     ): Response {
         $cat = $categoryRepo->findOneBy(['slug' => $category]);
         if (!$cat) {
@@ -60,6 +62,17 @@ class JourneyController extends AbstractController
 
         $totalRoles = count($roles);
 
+        $capabilities = $cat->getSlug() === 'ai' ? $capabilityMap->all() : [];
+        $moduleCapabilities = [];
+        if ($cat->getSlug() === 'ai') {
+            foreach ($modules as $module) {
+                $key = $capabilityMap->forModule($module->getSlug());
+                if ($key !== null) {
+                    $moduleCapabilities[$module->getSlug()] = $key;
+                }
+            }
+        }
+
         return $this->render('journey/show.html.twig', [
             'category' => $cat,
             'categories' => $allCategories,
@@ -73,6 +86,8 @@ class JourneyController extends AbstractController
             'typeCounts' => $typeCounts,
             'totalModules' => count($modules),
             'totalRoles' => $totalRoles,
+            'capabilities' => $capabilities,
+            'moduleCapabilities' => $moduleCapabilities,
         ]);
     }
 }
