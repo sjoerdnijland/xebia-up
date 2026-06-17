@@ -28,6 +28,14 @@
         {% endif %}
 
         <div class="hdr-right">
+            {% if activeCategory|default('') %}
+            <nav class="sub-tabs" aria-label="Section">
+                <a href="{{ path('journey_show', {category: activeCategory}) }}"
+                   class="sub-tab{% if activeSection|default('journey') == 'journey' %} active{% endif %}">Journey</a>
+                <a href="{{ path('skill_show', {category: activeCategory}) }}"
+                   class="sub-tab{% if activeSection|default('') == 'skills' %} active{% endif %}">Skills model</a>
+            </nav>
+            {% endif %}
             <form method="post" action="{{ path('in_company_toggle') }}" class="mode-form">
                 <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
                 <button type="submit" class="mode-toggle{% if journey.on %} mode-toggle--on{% endif %}"

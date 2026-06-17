@@ -5,20 +5,31 @@
     const content = document.getElementById('panelContent');
 
     function openPanel(slug) {
+        loadIntoPanel('/modules/' + slug + '?inline=1', '/modules/' + slug);
+    }
+
+    function openSkillPanel(slug, fromModuleSlug) {
+        var url = '/skill/' + slug + '?inline=1';
+        if (fromModuleSlug) url += '&from=' + encodeURIComponent(fromModuleSlug);
+        loadIntoPanel(url, '/skill/' + slug);
+    }
+
+    function loadIntoPanel(fetchUrl, fallbackUrl) {
         content.innerHTML = '<div class="panel-loading">Loading…</div>';
         panel.setAttribute('aria-hidden', 'false');
         panel.classList.add('open');
         scrim.classList.add('visible');
         document.body.classList.add('panel-open');
+        content.scrollTop = 0;
 
-        fetch('/modules/' + slug + '?inline=1')
+        fetch(fetchUrl)
             .then(function (r) { return r.text(); })
             .then(function (html) {
                 content.innerHTML = html;
                 bindPanelClose();
             })
             .catch(function () {
-                content.innerHTML = '<div class="panel-loading">Failed to load. <a href="/modules/' + slug + '">Open page</a></div>';
+                content.innerHTML = '<div class="panel-loading">Failed to load. <a href="' + fallbackUrl + '">Open page</a></div>';
             });
     }
 
@@ -37,6 +48,14 @@
     // Module card clicks (ignore the in-card select toggle so its submit isn't hijacked)
     document.addEventListener('click', function (e) {
         if (e.target.closest('[data-select-button], [data-select-form]')) return;
+
+        var skill = e.target.closest('[data-skill-slug]');
+        if (skill) {
+            e.preventDefault();
+            openSkillPanel(skill.dataset.skillSlug, skill.dataset.skillFrom || null);
+            return;
+        }
+
         var card = e.target.closest('[data-module-slug]');
         if (card) {
             e.preventDefault();
@@ -177,11 +196,26 @@
         if (e.key === 'Escape') closePanel();
     });
 
-    // Filter form auto-submit
+    // Filter form auto-submit — preserve scroll position across the reload
     const filterForm = document.querySelector('[data-filter-form]');
     if (filterForm) {
+        const SCROLL_KEY = 'journey:scroll:' + location.pathname;
+
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        const savedScroll = sessionStorage.getItem(SCROLL_KEY);
+        if (savedScroll !== null) {
+            sessionStorage.removeItem(SCROLL_KEY);
+            const y = parseInt(savedScroll, 10) || 0;
+            window.scrollTo(0, y);
+            requestAnimationFrame(function () { window.scrollTo(0, y); });
+        }
+
         filterForm.addEventListener('change', function (e) {
             if (e.target && e.target.matches('input[type="checkbox"]')) {
+                sessionStorage.setItem(SCROLL_KEY, String(window.scrollY));
                 filterForm.submit();
             }
         });

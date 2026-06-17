@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\CategoryRepository;
 use App\Repository\ModuleRepository;
+use App\Service\AiCapabilityMap;
 use App\Service\JourneyBuilder;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -101,6 +102,7 @@ class JourneyBuilderController extends AbstractController
     public function selection(
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
+        AiCapabilityMap $capabilityMap,
     ): Response {
         $slugs = $this->journey->getSelectedSlugs();
         $modules = $slugs ? $moduleRepo->findBy(['slug' => $slugs]) : [];
@@ -130,6 +132,7 @@ class JourneyBuilderController extends AbstractController
             'totalSelected' => count($modules),
             'clientName' => $this->journey->getClientName(),
             'roleName' => $this->journey->getRoleName(),
+            'capabilities' => $capabilityMap->all(),
         ]);
     }
 
@@ -137,6 +140,7 @@ class JourneyBuilderController extends AbstractController
     public function selectionPdf(
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
+        AiCapabilityMap $capabilityMap,
     ): Response {
         $slugs = $this->journey->getSelectedSlugs();
         $modules = $slugs ? $moduleRepo->findBy(['slug' => $slugs]) : [];
@@ -179,6 +183,7 @@ class JourneyBuilderController extends AbstractController
             'roleName' => $roleName,
             'generatedAt' => new \DateTimeImmutable(),
             'logoSrc' => $logoSrc,
+            'capabilities' => $capabilityMap->all(),
         ]);
 
         $options = new Options();

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\ModuleRepository;
 use App\Repository\RoleRepository;
+use App\Service\AiCapabilityMap;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,6 +18,7 @@ class ModuleController extends AbstractController
         Request $request,
         ModuleRepository $moduleRepo,
         RoleRepository $roleRepo,
+        AiCapabilityMap $capabilityMap,
     ): Response {
         $module = $moduleRepo->findOneBy(['slug' => $slug]);
         if (!$module) {
@@ -30,6 +32,7 @@ class ModuleController extends AbstractController
             'module' => $module,
             'totalRoles' => $totalRoles,
             'inline' => $inline,
+            'capabilities' => $capabilityMap->all(),
         ]);
     }
 }

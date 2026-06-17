@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% set activeCategory = category.slug %}
+{% set activeSection = 'skills' %}
+
+{% block title %}{{ category.name }} Skills & Capabilities Model — Xebia Up{% endblock %}
+
+{% block body %}
+<section class="skills-head">
+    <div class="skills-lead">
+        <div class="eyebrow">{{ category.tag }} · Skills &amp; Capabilities Model</div>
+        <h1 class="skills-title">The {{ category.name }} <span class="skills-title-accent">Skills &amp; Capabilities</span> <em>model</em></h1>
+        <p class="skills-sub">A complete map of what it takes to be {% if category.slug == 'ai' %}AI-Native{% else %}fluent in {{ category.name }}{% endif %} — capability domains and skills, each defined across four proficiency levels. Roles are later assigned a target level per skill; the model is the shared language behind every assessment and training module.</p>
+        <p><a class="skills-back" href="{{ path('journey_show', {category: category.slug}) }}">← Back to the {{ category.name }} learning journey</a></p>
+    </div>
+</section>
+
+{% if rings|length == 0 %}
+<section class="skills-empty">
+    <h2>Coming soon</h2>
+    <p>The {{ category.name }} skills model is in the works. For now, browse the modules on the journey page.</p>
+</section>
+{% else %}
+
+<section class="skills-scale">
+    <a class="skills-wheel" href="/img/skills-capabilities-wheel.svg"
+       target="_blank" rel="noopener"
+       title="Open the full {{ category.name }} Skills &amp; Capabilities wheel">
+        <img src="/img/skills-capabilities-wheel.svg"
+             alt="{{ category.name }} Skills &amp; Capabilities wheel"
+             width="520" height="520" loading="lazy">
+    </a>
+    <div>
+        <div class="eyebrow">The proficiency scale</div>
+        <h2>Four levels, cumulative — each assumes the ones below it</h2>
+        <p class="skills-scale-lede">Descriptions are role-agnostic. Read any row left-to-right to see how a capability grows from foundation to expert.</p>
+        <div class="scale-grid">
+            {% for level in levels %}
+            <div class="scale-card" style="--scale-color: {{ level.colorHex }}">
+                <div class="scale-card-head">
+                    <span class="scale-num">{{ level.depth }}</span>
+                    <span class="scale-name">{{ level.name }}</span>
+                </div>
+                <p>{{ level.blurb }}</p>
+                <span class="scale-bar"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% for ring in rings %}
+<section class="cap-group">
+    <div class="gh">
+        <span class="gt">{{ ring.name }}</span>
+    </div>
+    <a id="{{ ring.slug }}"></a>
+
+    {% for domain in ring.domains %}
+    {% set cap = capabilities[domain.capabilityKey]|default(null) %}
+    {% set domainColor = cap ? cap.color : '#7C1B7B' %}
+    <div class="cap-domain" style="--dom-color: {{ domainColor }}">
+        <div class="cap-dom-head">
+            <span class="cap-pill" style="background: {{ domainColor }}">{{ domain.name }}</span>
+            <span class="cap-cnt">{{ domain.skills|length }} skills</span>
+        </div>
+        <div class="cap-matrix-wrap">
+            <div class="cap-matrix">
+                <div class="ch ch-dom"><span class="ch-dom-label">Skill</span></div>
+                {% for level in levels %}
+                <div class="ch">
+                    <span class="ch-num">{{ level.depth }}</span>
+                    <span class="ch-name">{{ level.name }}</span>
+                </div>
+                {% endfor %}
+
+                {% for skill in domain.skills %}
+                <div class="cap-row">
+                    <div class="cap-skill">
+                        <span class="cap-skill-name">{{ skill.name }}</span>
+                    </div>
+                    {% for level in levels %}
+                    <div class="cap-cell">{{ skill.descriptionFor(level.slug) ?? '—' }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endfor %}
+
+<div class="skills-foot">
+    <p>{{ "now"|date("Y") }} · Xebia · AI Academy</p>
+</div>
+{% endif %}
+{% endblock %}

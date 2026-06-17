@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% set activeCategory = category.slug %}
+{% set activeSection = 'journey' %}
 
 {% block title %}{{ category.name }} Learning Journey — Xebia Up{% endblock %}
 
@@ -26,13 +27,19 @@
             </li>
             {% endfor %}
         </ul>
+        <p class="model-intro-cta">
+            <a class="model-intro-link" href="{{ path('skill_show', {category: category.slug}) }}">
+                Explore the full {{ category.name }} Skills &amp; Capabilities model →
+            </a>
+        </p>
     </div>
-    <div class="model-intro-wheel">
+    <a class="model-intro-wheel" href="{{ path('skill_show', {category: category.slug}) }}"
+       aria-label="Open the {{ category.name }} Skills &amp; Capabilities model">
         <img src="/img/skills-capabilities-wheel.svg"
              alt="AI Skills &amp; Capabilities wheel"
              width="520" height="520"
              loading="lazy">
-    </div>
+    </a>
 </section>
 {% endif %}
 

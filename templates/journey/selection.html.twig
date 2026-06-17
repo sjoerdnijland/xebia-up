@@ -88,7 +88,25 @@
                 <a href="#" class="sel-row-title" data-module-slug="{{ module.slug }}">
                     {{ module.title }}
                 </a>
-                <span class="sel-row-desc">{{ module.description }}</span>
+                <span class="sel-row-desc">
+                    {{ module.description }}
+                    {% if module.skills|length > 0 %}
+                    <span class="sel-row-skills">
+                        {% for skill in module.skills %}
+                        {% set cap = capabilities[skill.capabilityKey]|default(null) %}
+                        {% set skillColor = cap ? cap.color : '#7C1B7B' %}
+                        <button type="button"
+                                class="sel-skill"
+                                style="--skill-color: {{ skillColor }}"
+                                title="{{ skill.domainName }}"
+                                data-skill-slug="{{ skill.slug }}"
+                                data-skill-from="{{ module.slug }}">
+                            <span class="sel-skill-dot" aria-hidden="true"></span>{{ skill.name }}
+                        </button>
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                </span>
                 <form method="post" action="{{ path('journey_deselect') }}" class="sel-row-remove" data-select-form>
                     <input type="hidden" name="slug" value="{{ module.slug }}">
                     <input type="hidden" name="_next" value="{{ path('journey_selection') }}">

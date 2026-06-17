@@ -41,6 +41,30 @@
         </div>
     </div>
 
+    {% if module.skills|length > 0 %}
+    <div class="psec">
+        <h3>Skills you'll grow</h3>
+        <ul class="skill-chips">
+            {% for skill in module.skills %}
+            {% set cap = capabilities[skill.capabilityKey]|default(null) %}
+            {% set skillColor = cap ? cap.color : '#7C1B7B' %}
+            <li>
+                <button type="button"
+                        class="skill-chip"
+                        style="--skill-color: {{ skillColor }}"
+                        title="{{ skill.domainName }} — click to see proficiency levels"
+                        data-skill-slug="{{ skill.slug }}"
+                        data-skill-from="{{ module.slug }}">
+                    <span class="skill-chip-dot" aria-hidden="true"></span>
+                    <span class="skill-chip-name">{{ skill.name }}</span>
+                    <svg class="skill-chip-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     {% if journey.on %}
     {% set isSelected = journey.isSelected(module.slug) %}
     <div class="psec">

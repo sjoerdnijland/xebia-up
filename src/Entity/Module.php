@@ -49,6 +49,11 @@ class Module
     #[ORM\OrderBy(['startsAt' => 'ASC'])]
     private Collection $sessions;
 
+    #[ORM\ManyToMany(targetEntity: Skill::class, inversedBy: 'modules')]
+    #[ORM\JoinTable(name: 'module_skill')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $skills;
+
     #[ORM\Column]
     private int $position = 0;
 
@@ -58,6 +63,7 @@ class Module
         $this->roles = new ArrayCollection();
         $this->objectives = new ArrayCollection();
         $this->sessions = new ArrayCollection();
+        $this->skills = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -79,6 +85,8 @@ class Module
     public function addObjective(ModuleObjective $obj): static { if (!$this->objectives->contains($obj)) { $this->objectives->add($obj); $obj->setModule($this); } return $this; }
     public function getSessions(): Collection { return $this->sessions; }
     public function addSession(Session $session): static { if (!$this->sessions->contains($session)) { $this->sessions->add($session); $session->setModule($this); } return $this; }
+    public function getSkills(): Collection { return $this->skills; }
+    public function addSkill(Skill $skill): static { if (!$this->skills->contains($skill)) { $this->skills->add($skill); } return $this; }
     public function getPosition(): int { return $this->position; }
     public function setPosition(int $position): static { $this->position = $position; return $this; }
 
