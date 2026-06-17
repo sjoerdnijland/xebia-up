@@ -26,7 +26,7 @@ class Journey
     private Client $client;
 
     /** @var string[] */
-    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    #[ORM\Column(type: 'json')]
     private array $moduleSlugs = [];
 
     #[ORM\Column(type: 'datetime_immutable')]
