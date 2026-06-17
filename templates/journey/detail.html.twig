@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ currentJourney.name }} — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="intro">
+    <div class="eyebrow">
+        <a href="{{ path('journey_index') }}" class="intro-back">← All journeys</a>
+    </div>
+    <h1>{{ currentJourney.name }}</h1>
+    <p>
+        {% if totalSelected == 0 %}
+            No modules in this journey yet. Head back to a category and add modules to build it out.
+        {% else %}
+            {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %} in this journey{% if currentJourney.audience %} for <strong>{{ currentJourney.audience }}</strong>{% endif %}. Drag a step to change its order.
+        {% endif %}
+    </p>
+</div>
+
+<div class="meta-grid">
+    <form class="client-form" data-meta-form
+          data-meta-endpoint="{{ path('journey_id_rename', {id: currentJourney.id}) }}">
+        <label for="clientId" class="client-label">Client</label>
+        <select id="clientId" name="clientId" class="client-input">
+            {% for c in clients %}
+            <option value="{{ c.id }}"{% if c.id == currentJourney.client.id %} selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <span class="client-status" data-meta-status></span>
+    </form>
+    <form class="client-form" data-meta-form
+          data-meta-endpoint="{{ path('journey_id_rename', {id: currentJourney.id}) }}">
+        <label for="audienceName" class="client-label">Audience</label>
+        <input type="text"
+               id="audienceName"
+               name="audience"
+               class="client-input"
+               placeholder="e.g. Product Owners"
+               value="{{ currentJourney.audience }}"
+               maxlength="120"
+               autocomplete="off">
+        <span class="client-status" data-meta-status></span>
+    </form>
+</div>
+
+{% if totalSelected == 0 %}
+<div class="sel-empty">
+    <p>Pick a category to start adding modules:</p>
+    <div class="sel-empty-cats">
+        {% for cat in categories %}
+        <a href="{{ path('journey_show', {category: cat.slug}) }}" class="chip">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="sel-actions">
+    <a href="{{ path('journey_id_pdf', {id: currentJourney.id}) }}" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+    </a>
+    <form method="post" action="{{ path('journey_id_delete', {id: currentJourney.id}) }}"
+          onsubmit="return confirm('Delete this journey? The modules in it will be unselected.');">
+        <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+        <button type="submit" class="btn-ghost">Delete journey</button>
+    </form>
+</div>
+
+<ol class="journey-path" data-sortable data-reorder-endpoint="{{ path('journey_id_reorder', {id: currentJourney.id}) }}">
+    {% for module in modulesInOrder %}
+    {% set cap = null %}
+    {% if module.skills|length > 0 %}
+        {% set cap = capabilities[module.skills|first.capabilityKey]|default(null) %}
+    {% endif %}
+    {% set category = module.categories.first %}
+    <li class="journey-step" data-slug="{{ module.slug }}"{% if cap %} style="--cap-color: {{ cap.color }}"{% endif %}>
+        <div class="journey-step-marker" aria-hidden="true">
+            <span class="journey-step-num">{{ loop.index }}</span>
+        </div>
+        <article class="journey-step-card">
+            <span class="journey-step-handle" aria-hidden="true" title="Drag to reorder">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+            </span>
+            <form method="post" action="{{ path('journey_id_deselect', {id: currentJourney.id}) }}" class="journey-step-remove" data-select-form>
+                <input type="hidden" name="slug" value="{{ module.slug }}">
+                <input type="hidden" name="_next" value="{{ path('journey_detail', {id: currentJourney.id}) }}">
+                <button type="submit" class="btn-remove" data-select-button data-slug="{{ module.slug }}" aria-label="Remove module">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </form>
+            <div class="journey-step-tags">
+                <span class="sel-level-chip" style="background: {{ module.level.tintHex }}; color: {{ module.level.colorHex }}; border-color: {{ module.level.colorHex }};">
+                    L{{ module.level.depth }} · {{ module.level.name }}
+                </span>
+                {% if category %}
+                <span class="journey-step-cat">{{ category.name }}</span>
+                {% endif %}
+                {% if module.type %}
+                <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
+                {% endif %}
+            </div>
+            <button type="button" class="journey-step-title" data-module-slug="{{ module.slug }}">
+                {{ module.title }}
+            </button>
+            <p class="journey-step-desc">{{ module.description }}</p>
+            {% if showSkills|default(false) and module.skills|length > 0 %}
+            <div class="journey-step-skills">
+                {% for skill in module.skills %}
+                {% set skillCap = capabilities[skill.capabilityKey]|default(null) %}
+                {% set skillColor = skillCap ? skillCap.color : '#7C1B7B' %}
+                <button type="button"
+                        class="sel-skill"
+                        style="--skill-color: {{ skillColor }}"
+                        title="{{ skill.domainName }}"
+                        data-skill-slug="{{ skill.slug }}"
+                        data-skill-from="{{ module.slug }}">
+                    <span class="sel-skill-dot" aria-hidden="true"></span>{{ skill.name }}
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+    </li>
+    {% endfor %}
+</ol>
+{% endif %}
+
+<script src="/js/vendor/sortable.min.js"></script>
+{% endblock %}

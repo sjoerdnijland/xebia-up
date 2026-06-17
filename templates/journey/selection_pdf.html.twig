@@ -7,7 +7,7 @@
     @page { margin: 24mm 18mm 22mm 18mm; }
     body { font-family: Helvetica, Arial, sans-serif; color: #1B0E20; font-size: 11pt; line-height: 1.45; }
 
-    .pdf-head { border-bottom: 2px solid #561257; padding-bottom: 14px; margin-bottom: 18px; }
+    .pdf-head { border-bottom: 2px solid #561257; padding-bottom: 14px; margin-bottom: 22px; }
     .pdf-brand { border-collapse: collapse; }
     .pdf-brand td { vertical-align: middle; padding: 0; }
     .pdf-brand img { height: 30px; width: auto; display: block; }
@@ -19,64 +19,90 @@
 
     .pdf-empty { color: #574B5E; font-style: italic; padding: 30px 0; text-align: center; }
 
-    .cat { margin-top: 22px; }
-    .cat-head {
-        font-size: 12pt; font-weight: 700; color: #561257;
-        border-bottom: 1px solid #ECE6EE;
-        padding-bottom: 4px; margin-bottom: 10px;
+    /* Journey path table — 2 columns: marker | card.
+       The marker column has a right border that draws the continuous
+       connecting line through the whole sequence. */
+    .path { border-collapse: collapse; width: 100%; }
+    .path .marker {
+        width: 30pt;
+        vertical-align: top;
+        padding: 0 10pt 14pt 0;
+        border-right: 2pt solid #ECE6EE;
     }
-    .cat-tag { color: #8A8090; font-weight: 400; font-size: 9pt; margin-left: 8px; }
+    .path .card-cell {
+        vertical-align: top;
+        padding: 0 0 14pt 12pt;
+    }
+    .path tr:last-child .marker,
+    .path tr:last-child .card-cell { padding-bottom: 0; }
 
-    .mod { padding: 10px 0 12px; border-bottom: 1px solid #F0EBF2; page-break-inside: avoid; }
-    .mod:last-child { border-bottom: 0; }
-    .mod-head { margin-bottom: 4px; }
-    .mod-num {
-        display: inline-block; width: 22px;
-        color: #8A8090; font-weight: 700; font-size: 10pt;
+    /* The numbered circle. Dompdf renders inline-block + border-radius
+       reliably; we approximate the .journey-step-marker from the web view. */
+    .step-num {
+        display: inline-block;
+        width: 28pt; height: 28pt; line-height: 28pt;
+        border-radius: 14pt;
+        background: #561257; color: #fff;
+        text-align: center; font-weight: 700; font-size: 11pt;
+        /* Offset so the circle sits on the connecting line */
+        margin-right: -16pt; /* pull right edge onto the column border */
     }
-    .mod-title { font-weight: 700; font-size: 11pt; }
-    .mod-level {
-        display: inline-block; margin-left: 8px;
-        padding: 1px 8px; border-radius: 999px;
+
+    .card {
+        border: 1px solid #ECE6EE;
+        border-left: 3pt solid #561257;
+        border-radius: 4pt;
+        background: #FFFFFF;
+        padding: 10pt 12pt 10pt 12pt;
+        page-break-inside: avoid;
+    }
+    .card-tags { margin-bottom: 4pt; font-size: 9pt; }
+    .level-chip {
+        display: inline-block;
+        padding: 1pt 8pt; border-radius: 999pt;
         font-size: 8pt; font-weight: 700; color: #561257;
         background: #F8EFF8; border: 1px solid #B75EB8;
+        margin-right: 4pt;
     }
-    .mod-type {
-        display: inline-block; margin-left: 6px;
-        padding: 1px 8px; border-radius: 999px;
+    .cat-chip {
+        display: inline-block;
+        font-size: 8pt; font-weight: 700; color: #8A8090;
+        text-transform: uppercase; letter-spacing: 0.04em;
+        margin-right: 6pt;
+    }
+    .type-chip {
+        display: inline-block;
+        padding: 1pt 8pt; border-radius: 999pt;
         font-size: 8pt; font-weight: 700;
         border: 1px solid;
     }
-    .mod-type--self-paced { color: #2c6e49; border-color: #cce6da; background: #f1f8f4; }
-    .mod-type--trainer-led { color: #5a3a72; border-color: #e3d6ea; background: #f8f3fa; }
-    .mod-desc { color: #574B5E; font-size: 10pt; margin: 4px 0 6px 22px; }
-    .mod-obj { margin: 0 0 0 22px; padding: 0; list-style: none; font-size: 10pt; color: #1B0E20; }
-    .mod-obj li { padding: 1px 0 1px 14px; position: relative; }
-    .mod-obj li::before {
-        content: "·";
-        position: absolute; left: 4px; color: #831B84; font-weight: 700;
-    }
+    .type-chip--self-paced { color: #2c6e49; border-color: #cce6da; background: #f1f8f4; }
+    .type-chip--trainer-led { color: #5a3a72; border-color: #e3d6ea; background: #f8f3fa; }
 
-    .mod-skills {
-        margin: 8px 0 0 22px;
-        font-size: 9pt; color: #574B5E;
+    .card-title { font-weight: 700; font-size: 11.5pt; margin: 2pt 0 4pt; color: #1B0E20; }
+    .card-desc { color: #574B5E; font-size: 10pt; margin: 0 0 6pt; }
+    .card-obj { margin: 4pt 0 0 0; padding: 0; list-style: none; font-size: 10pt; color: #1B0E20; }
+    .card-obj li { padding: 1pt 0 1pt 12pt; position: relative; }
+    .card-obj li::before {
+        content: "·"; position: absolute; left: 4pt; color: #831B84; font-weight: 700;
     }
-    .mod-skills-label {
+    .card-skills { margin-top: 6pt; font-size: 9pt; color: #574B5E; }
+    .skills-label {
         font-weight: 700; color: #1B0E20;
         text-transform: uppercase; letter-spacing: 0.04em;
-        font-size: 8pt; margin-right: 4px;
+        font-size: 8pt; margin-right: 4pt;
     }
-    .mod-skill {
+    .skill {
         display: inline-block;
-        padding: 1px 8px 1px 6px; margin: 2px 4px 0 0;
-        border-radius: 999px;
+        padding: 1pt 8pt 1pt 6pt; margin: 2pt 4pt 0 0;
+        border-radius: 999pt;
         border: 1px solid #ECE6EE; background: #FAFAFB;
         font-size: 9pt; color: #1B0E20;
     }
-    .mod-skill-dot {
+    .skill-dot {
         display: inline-block;
-        width: 6px; height: 6px; border-radius: 50%;
-        margin-right: 5px; vertical-align: middle;
+        width: 6pt; height: 6pt; border-radius: 3pt;
+        margin-right: 5pt; vertical-align: middle;
         background: #7C1B7B;
     }
 
@@ -99,57 +125,62 @@
     <div class="pdf-meta">
         {% if clientName %}<strong>{{ clientName }}</strong>{% endif %}
         {% if roleName %}{% if clientName %} · {% endif %}<strong>{{ roleName }}</strong>{% endif %}
-        {% if clientName or roleName %} · {% endif %}
-        {{ generatedAt|date('j M Y') }} · {{ totalSelected }} module{% if totalSelected != 1 %}s{% endif %}
+        {% if audience|default('') %} · for <strong>{{ audience }}</strong>{% endif %}
+        {% if clientName or roleName or audience %} · {% endif %}
+        {{ generatedAt|date('j M Y') }} · {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %}
     </div>
 </div>
 
 {% if totalSelected == 0 %}
 <div class="pdf-empty">No modules selected.</div>
 {% else %}
-    {% set modNum = 0 %}
-    {% for category in categories %}
-        {% set mods = byCategory[category.slug] | default([]) %}
-        {% if mods is not empty %}
-        <div class="cat">
-            <div class="cat-head">
-                {{ category.name }}
-                <span class="cat-tag">{{ category.tag }} · {{ mods|length }} module{% if mods|length != 1 %}s{% endif %}</span>
-            </div>
-            {% for module in mods %}
-                {% set modNum = modNum + 1 %}
-                <div class="mod">
-                    <div class="mod-head">
-                        <span class="mod-num">{{ modNum }}.</span>
-                        <span class="mod-title">{{ module.title }}</span>
-                        <span class="mod-level">Level {{ module.level.depth }} · {{ module.level.name }}</span>
-                        {% if module.type %}
-                        <span class="mod-type mod-type--{{ module.type.slug }}">{{ module.type.name }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="mod-desc">{{ module.description }}</div>
-                    {% if module.objectives|length > 0 %}
-                    <ul class="mod-obj">
-                        {% for obj in module.objectives %}
-                        <li>{{ obj.text }}</li>
-                        {% endfor %}
-                    </ul>
+<table class="path">
+    {% for module in modulesInOrder %}
+    {% set category = module.categories.first %}
+    {% set firstCap = module.skills|length > 0 ? capabilities[module.skills|first.capabilityKey]|default(null) : null %}
+    {% set accent = firstCap ? firstCap.color : '#561257' %}
+    <tr>
+        <td class="marker">
+            <span class="step-num" style="background: {{ accent }};">{{ loop.index }}</span>
+        </td>
+        <td class="card-cell">
+            <div class="card" style="border-left-color: {{ accent }};">
+                <div class="card-tags">
+                    <span class="level-chip"
+                          style="color: {{ module.level.colorHex }}; background: {{ module.level.tintHex }}; border-color: {{ module.level.colorHex }};">
+                        L{{ module.level.depth }} · {{ module.level.name }}
+                    </span>
+                    {% if category %}
+                    <span class="cat-chip">{{ category.name }}</span>
                     {% endif %}
-                    {% if module.skills|length > 0 %}
-                    <div class="mod-skills">
-                        <span class="mod-skills-label">Skills</span>
-                        {% for skill in module.skills %}
-                        {% set cap = capabilities[skill.capabilityKey]|default(null) %}
-                        {% set skillColor = cap ? cap.color : '#7C1B7B' %}
-                        <span class="mod-skill"><span class="mod-skill-dot" style="background: {{ skillColor }}"></span>{{ skill.name }}</span>
-                        {% endfor %}
-                    </div>
+                    {% if module.type %}
+                    <span class="type-chip type-chip--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}
                 </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+                <div class="card-title">{{ module.title }}</div>
+                <div class="card-desc">{{ module.description }}</div>
+                {% if module.objectives|length > 0 %}
+                <ul class="card-obj">
+                    {% for obj in module.objectives %}
+                    <li>{{ obj.text }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if module.skills|length > 0 %}
+                <div class="card-skills">
+                    <span class="skills-label">Skills</span>
+                    {% for skill in module.skills %}
+                    {% set cap = capabilities[skill.capabilityKey]|default(null) %}
+                    {% set skillColor = cap ? cap.color : '#7C1B7B' %}
+                    <span class="skill"><span class="skill-dot" style="background: {{ skillColor }};"></span>{{ skill.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </td>
+    </tr>
     {% endfor %}
+</table>
 {% endif %}
 
 <div class="pdf-foot">Xebia Up — Composed learning journey</div>

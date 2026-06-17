@@ -1,0 +1,103 @@
+<div class="journey-modal-head">
+    <button type="button" class="journey-modal-close" data-journey-modal-close aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="eyebrow">Add to a journey</div>
+    <h3 class="journey-modal-title">Do you want to add this to&hellip;</h3>
+    <span class="journey-modal-subject"
+          style="background: {{ module.level.tintHex }}; color: {{ module.level.colorHex }};">
+        L{{ module.level.depth }} · {{ module.title }}
+    </span>
+</div>
+
+<ul class="journey-modal-list">
+    {% for group in clientGroups %}
+    {% set client = group.client %}
+    {% set journeys = group.journeys %}
+    <li class="journey-modal-group">
+        <span class="journey-modal-group-label">{{ client.name }}</span>
+    </li>
+    {% if journeys|length == 0 %}
+    <li class="journey-modal-row journey-modal-row--empty">
+        <span class="journey-modal-empty-text">No journeys yet for this client.</span>
+    </li>
+    {% endif %}
+    {% for journey in journeys %}
+    {% set has = containsThis[journey.id]|default(false) %}
+    <li class="journey-modal-row{% if has %} journey-modal-row--has{% endif %}">
+        <span class="journey-modal-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <div class="journey-modal-text">
+            <span class="journey-modal-name">{{ journey.name }}</span>
+            <span class="journey-modal-meta">
+                {% if journey.audience %}{{ journey.audience }} · {% endif %}{{ journey.moduleSlugs|length }} module{% if journey.moduleSlugs|length != 1 %}s{% endif %}
+            </span>
+        </div>
+        <form method="post"
+              action="{{ has ? path('journey_id_deselect', {id: journey.id}) : path('journey_id_select', {id: journey.id}) }}"
+              data-journey-modal-form>
+            <input type="hidden" name="slug" value="{{ module.slug }}">
+            <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
+            <button type="submit"
+                    class="{% if has %}journey-modal-remove-btn{% else %}journey-modal-add-btn{% endif %}"
+                    aria-label="{{ has ? 'Remove from' : 'Add to' }} {{ journey.name }}">
+                {% if has %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                {% endif %}
+            </button>
+        </form>
+    </li>
+    {% endfor %}
+    {% endfor %}
+
+    <li class="journey-modal-row journey-modal-row--new" data-journey-modal-new>
+        <button type="button" class="journey-modal-new-toggle" data-journey-modal-new-toggle>
+            <span class="journey-modal-icon journey-modal-icon--new" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            <div class="journey-modal-text">
+                <span class="journey-modal-name">
+                    {% if clients|length == 0 %}Create a client first{% else %}{% if clientGroups|length > 0 %}Create another learning journey{% else %}Create a learning journey{% endif %}{% endif %}
+                </span>
+                <span class="journey-modal-meta">
+                    {% if clients|length == 0 %}
+                        Journeys live under a client. Add one before creating journeys.
+                    {% else %}
+                        Pick a client, give it a name and an audience.
+                    {% endif %}
+                </span>
+            </div>
+        </button>
+
+        {% if clients|length == 0 %}
+        <div class="journey-modal-new-empty">
+            <a class="btn-primary" href="{{ path('journey_index') }}">Go to clients</a>
+        </div>
+        {% else %}
+        <form method="post"
+              action="{{ path('journey_create') }}"
+              class="journey-modal-new-form"
+              data-journey-modal-form>
+            <input type="hidden" name="then" value="select">
+            <input type="hidden" name="slug" value="{{ module.slug }}">
+            <label class="journey-modal-new-field">
+                <span>Client</span>
+                <select name="clientId" required>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <input type="text" name="name" placeholder="Journey name (e.g. PO AI Ambassadors)" required maxlength="120">
+            <input type="text" name="audience" placeholder="Audience (e.g. Product Owners)" maxlength="120">
+            <div class="journey-modal-new-actions">
+                <button type="button" class="btn-ghost" data-journey-modal-new-cancel>Cancel</button>
+                <button type="submit" class="btn-primary">Create &amp; add</button>
+            </div>
+        </form>
+        {% endif %}
+    </li>
+</ul>

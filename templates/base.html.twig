@@ -46,9 +46,9 @@
                 </button>
             </form>
             {% if journey.on %}
-            <a href="{{ path('journey_selection') }}" class="selection-link">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                Selected <span class="selection-count">{{ journey.count }}</span>
+            <a href="{{ path('journey_index') }}" class="selection-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Journeys <span class="selection-count">{{ journey.count }}</span>
             </a>
             {% endif %}
         </div>
@@ -75,6 +75,12 @@
     <div class="panel-content" id="panelContent">
         <div class="panel-loading">Loading…</div>
     </div>
+</div>
+
+<!-- Add-to-journey modal -->
+<div class="journey-modal-scrim" id="journeyModalScrim" aria-hidden="true"></div>
+<div class="journey-modal" id="journeyModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="journey-modal-content" id="journeyModalContent"></div>
 </div>
 
 <div class="toast" id="toast" aria-live="polite"></div>

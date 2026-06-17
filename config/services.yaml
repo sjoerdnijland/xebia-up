@@ -1,6 +1,6 @@
 parameters:
     site_access.password: 'academy2026'
-    feature.show_skills_on_overview: false
+    feature.show_skills_on_overview: true
 
 services:
     _defaults:
@@ -16,3 +16,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    App\Doctrine\EnableSqliteForeignKeysMiddleware:
+        tags:
+            - { name: doctrine.middleware }

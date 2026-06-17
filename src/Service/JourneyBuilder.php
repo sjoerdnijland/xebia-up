@@ -2,131 +2,97 @@
 
 namespace App\Service;
 
-use Symfony\Component\HttpFoundation\RequestStack;
-
+/**
+ * Backwards-compatible facade over {@see JourneyCollection}. Existing templates use this as
+ * the Twig global `journey`. Methods operate on the *active* journey or the global collection
+ * as appropriate.
+ *
+ * Two methods have semantically shifted with the move to multi-journey/DB-backed support:
+ *  - isSelected($slug) → true if the slug is in ANY journey (so the card "Selected" badge
+ *    remains useful when a module belongs to a non-active journey).
+ *  - count()           → number of journeys (drives the header "Journeys (N)" pill).
+ */
 class JourneyBuilder
 {
-    private const MODE_KEY = 'in_company_mode';
-    private const SELECTION_KEY = 'in_company_selection';
-    private const CLIENT_NAME_KEY = 'in_company_client_name';
-    private const ROLE_NAME_KEY = 'in_company_role_name';
-
-    public function __construct(private readonly RequestStack $requestStack)
+    public function __construct(private readonly JourneyCollection $journeys)
     {
     }
 
+    /* --- mode --- */
+
     public function isOn(): bool
     {
-        return (bool) $this->session()?->get(self::MODE_KEY, false);
+        return $this->journeys->isOn();
     }
 
     public function toggleMode(): bool
     {
-        $session = $this->session();
-        if (!$session) {
-            return false;
-        }
-        $next = !$session->get(self::MODE_KEY, false);
-        $session->set(self::MODE_KEY, $next);
-        return $next;
+        return $this->journeys->toggleMode();
     }
+
+    /* --- active journey accessors --- */
 
     /** @return string[] */
     public function getSelectedSlugs(): array
     {
-        return $this->session()?->get(self::SELECTION_KEY, []) ?? [];
+        return $this->journeys->getActive()?->getModuleSlugs() ?? [];
     }
 
     public function isSelected(string $slug): bool
     {
-        return in_array($slug, $this->getSelectedSlugs(), true);
+        return count($this->journeys->journeysContainingSlug($slug)) > 0;
     }
 
+    /** Number of *journeys* (NB: redefined for multi-journey support). */
     public function count(): int
     {
-        return count($this->getSelectedSlugs());
-    }
-
-    public function select(string $slug): void
-    {
-        $slugs = $this->getSelectedSlugs();
-        if (!in_array($slug, $slugs, true)) {
-            $slugs[] = $slug;
-            $this->session()?->set(self::SELECTION_KEY, $slugs);
-        }
-    }
-
-    public function deselect(string $slug): void
-    {
-        $slugs = array_values(array_filter(
-            $this->getSelectedSlugs(),
-            static fn (string $s): bool => $s !== $slug,
-        ));
-        $this->session()?->set(self::SELECTION_KEY, $slugs);
-    }
-
-    public function clear(): void
-    {
-        $session = $this->session();
-        if (!$session) {
-            return;
-        }
-        $session->set(self::SELECTION_KEY, []);
-        $session->set(self::ROLE_NAME_KEY, '');
-    }
-
-    public function getClientName(): string
-    {
-        return (string) ($this->session()?->get(self::CLIENT_NAME_KEY, '') ?? '');
-    }
-
-    public function setClientName(string $name): void
-    {
-        $name = trim($name);
-        $this->session()?->set(self::CLIENT_NAME_KEY, mb_substr($name, 0, 120));
+        return $this->journeys->count();
     }
 
     public function getRoleName(): string
     {
-        return (string) ($this->session()?->get(self::ROLE_NAME_KEY, '') ?? '');
+        return $this->journeys->getActive()?->getAudience() ?? '';
     }
 
-    public function setRoleName(string $name): void
+    /* --- active-journey mutations (legacy compat) --- */
+
+    public function select(string $slug): void
     {
-        $name = trim($name);
-        $this->session()?->set(self::ROLE_NAME_KEY, mb_substr($name, 0, 120));
+        $j = $this->journeys->getActive();
+        if (!$j) {
+            return; // cannot create on the fly anymore — needs a client
+        }
+        $this->journeys->addSlugTo($j->getId(), $slug);
     }
 
-    /**
-     * Reorder the selection to match the given slugs.
-     * Any unknown slugs are dropped; any current slugs missing from $slugs are appended at the end
-     * so a stale client doesn't accidentally lose modules.
-     *
-     * @param string[] $slugs
-     */
+    public function deselect(string $slug): void
+    {
+        $j = $this->journeys->getActive();
+        if (!$j) {
+            return;
+        }
+        $this->journeys->removeSlugFrom($j->getId(), $slug);
+    }
+
+    public function clear(): void
+    {
+        $j = $this->journeys->getActive();
+        if (!$j) {
+            return;
+        }
+        $j->setModuleSlugs([]);
+        $j->setAudience('');
+        // Flush via reorderWithin([]) — easier than exposing flush from the collection.
+        $this->journeys->reorderWithin($j->getId(), []);
+    }
+
+    /** @param string[] $slugs */
     public function reorder(array $slugs): void
     {
-        $current = $this->getSelectedSlugs();
-        $clean = [];
-        foreach ($slugs as $slug) {
-            if (is_string($slug) && in_array($slug, $current, true) && !in_array($slug, $clean, true)) {
-                $clean[] = $slug;
-            }
+        $j = $this->journeys->getActive();
+        if (!$j) {
+            return;
         }
-        foreach ($current as $slug) {
-            if (!in_array($slug, $clean, true)) {
-                $clean[] = $slug;
-            }
-        }
-        $this->session()?->set(self::SELECTION_KEY, $clean);
-    }
-
-    private function session(): ?\Symfony\Component\HttpFoundation\Session\SessionInterface
-    {
-        $request = $this->requestStack->getMainRequest();
-        if (!$request || !$request->hasSession()) {
-            return null;
-        }
-        return $request->getSession();
+        $this->journeys->reorderWithin($j->getId(), $slugs);
     }
 }

@@ -1,5 +1,8 @@
 /* Xebia Up — app JS */
 (function () {
+    /* ============================================================
+       Module side-panel (and skill detail loaded into the same slot)
+       ============================================================ */
     const scrim = document.getElementById('panelScrim');
     const panel = document.getElementById('modulePanel');
     const content = document.getElementById('panelContent');
@@ -45,8 +48,93 @@
         if (btn) btn.addEventListener('click', closePanel);
     }
 
-    // Module card clicks (ignore the in-card select toggle so its submit isn't hijacked)
+    /* ============================================================
+       Add-to-journey modal
+       ============================================================ */
+    const jmScrim = document.getElementById('journeyModalScrim');
+    const jmModal = document.getElementById('journeyModal');
+    const jmContent = document.getElementById('journeyModalContent');
+
+    function openJourneyModal(slug) {
+        if (!jmModal || !jmContent) return;
+        jmContent.innerHTML = '<div class="journey-modal-loading">Loading…</div>';
+        jmModal.setAttribute('aria-hidden', 'false');
+        jmModal.classList.add('open');
+        jmScrim.classList.add('visible');
+        document.body.classList.add('journey-modal-open');
+
+        fetch('/journeys/add-modal/' + encodeURIComponent(slug), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+            .then(function (r) { return r.text(); })
+            .then(function (html) { jmContent.innerHTML = html; })
+            .catch(function () { jmContent.innerHTML = '<div class="journey-modal-loading">Failed to load.</div>'; });
+    }
+
+    function closeJourneyModal() {
+        if (!jmModal) return;
+        jmModal.classList.remove('open');
+        jmModal.setAttribute('aria-hidden', 'true');
+        if (jmScrim) jmScrim.classList.remove('visible');
+        document.body.classList.remove('journey-modal-open');
+    }
+
+    if (jmScrim) jmScrim.addEventListener('click', closeJourneyModal);
+
+    /* ============================================================
+       Click delegate — order matters
+       ============================================================ */
     document.addEventListener('click', function (e) {
+        // Modal close
+        if (e.target.closest('[data-journey-modal-close]')) {
+            e.preventDefault();
+            closeJourneyModal();
+            return;
+        }
+
+        // Modal "Create another" expand toggle
+        var newToggle = e.target.closest('[data-journey-modal-new-toggle]');
+        if (newToggle) {
+            e.preventDefault();
+            var newRow = newToggle.closest('[data-journey-modal-new]');
+            if (newRow) {
+                newRow.classList.add('journey-modal-row--new--expanded');
+                newToggle.setAttribute('hidden', '');
+                var form = newRow.querySelector('.journey-modal-new-form');
+                if (form) {
+                    form.removeAttribute('hidden');
+                    var firstInput = form.querySelector('input[type="text"]');
+                    if (firstInput) firstInput.focus();
+                }
+            }
+            return;
+        }
+
+        // Modal "Create another" cancel
+        var newCancel = e.target.closest('[data-journey-modal-new-cancel]');
+        if (newCancel) {
+            e.preventDefault();
+            var newRow2 = newCancel.closest('[data-journey-modal-new]');
+            if (newRow2) {
+                newRow2.classList.remove('journey-modal-row--new--expanded');
+                var toggle = newRow2.querySelector('[data-journey-modal-new-toggle]');
+                if (toggle) toggle.removeAttribute('hidden');
+                var form2 = newRow2.querySelector('.journey-modal-new-form');
+                if (form2) form2.setAttribute('hidden', '');
+            }
+            return;
+        }
+
+        // "Add to journey" trigger (card and side-panel)
+        var addBtn = e.target.closest('[data-add-journey]');
+        if (addBtn) {
+            e.preventDefault();
+            openJourneyModal(addBtn.dataset.slug);
+            return;
+        }
+
+        // Skill chip clicks open the skill detail in the side panel
         if (e.target.closest('[data-select-button], [data-select-form]')) return;
 
         var skill = e.target.closest('[data-skill-slug]');
@@ -56,6 +144,7 @@
             return;
         }
 
+        // Module card → open detail side-panel
         var card = e.target.closest('[data-module-slug]');
         if (card) {
             e.preventDefault();
@@ -63,8 +152,19 @@
         }
     });
 
-    // AJAX submit for in-company select / deselect forms
+    /* ============================================================
+       Form submit delegate
+       ============================================================ */
     document.addEventListener('submit', function (e) {
+        // Journey modal forms (add / remove / create-then-add)
+        var jmForm = e.target.closest('[data-journey-modal-form]');
+        if (jmForm) {
+            e.preventDefault();
+            submitModalForm(jmForm);
+            return;
+        }
+
+        // Legacy in-card / detail-row select form (kept for the detail page remove buttons)
         var form = e.target.closest('[data-select-form]');
         if (!form) return;
         var btn = form.querySelector('[data-select-button]');
@@ -81,50 +181,82 @@
         .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
         .then(function (data) {
             var slug = btn.dataset.slug;
-            var nowSelected = (data.selectedSlugs || []).indexOf(slug) !== -1;
-            updateSelectControls(slug, nowSelected);
+            var stillInActive = (data.selectedSlugs || []).indexOf(slug) !== -1;
+            updateLegacySelectControls(slug, stillInActive);
             updateSelectionCount(data.count);
         })
-        .catch(function () {
-            form.submit();
-        });
+        .catch(function () { form.submit(); });
     });
 
-    function updateSelectControls(slug, isSelected) {
-        var buttons = document.querySelectorAll('[data-select-button][data-slug="' + cssEscape(slug) + '"]');
-        buttons.forEach(function (btn) {
-            var form = btn.closest('form');
+    function submitModalForm(form) {
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function (data) {
+            if (data.html && jmContent) {
+                jmContent.innerHTML = data.html;
+            }
+            if (typeof data.count !== 'undefined') {
+                updateSelectionCount(data.count);
+            }
+            if (typeof data.slug === 'string' && Array.isArray(data.anyJourneys)) {
+                updateCardSelectedState(data.slug, data.anyJourneys.length > 0);
+            }
+        })
+        .catch(function () {
+            // Fall back to a full submit if AJAX fails so we don't lose the user's input.
+            form.submit();
+        });
+    }
+
+    function updateCardSelectedState(slug, isInAny) {
+        var selectors = [
+            'button[data-add-journey][data-slug="' + cssEscape(slug) + '"]'
+        ];
+        document.querySelectorAll(selectors.join(',')).forEach(function (btn) {
+            btn.setAttribute('aria-pressed', isInAny ? 'true' : 'false');
             var inPanel = btn.classList.contains('panel-select');
-            btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
 
             if (inPanel) {
-                btn.classList.toggle('panel-select--on', isSelected);
+                btn.classList.toggle('panel-select--on', isInAny);
                 var label = btn.querySelector('.panel-select-label');
-                if (label) label.textContent = isSelected ? 'Selected · click to remove' : 'Add this module to the journey';
+                if (label) label.textContent = isInAny ? 'In your journeys · review' : 'Add this module to a journey';
             } else {
-                btn.classList.toggle('mcard-select--on', isSelected);
+                btn.classList.toggle('mcard-select--on', isInAny);
                 var label2 = btn.querySelector('.mcard-select-label');
-                if (label2) label2.textContent = isSelected ? 'Selected' : 'Add to journey';
+                if (label2) label2.textContent = isInAny ? 'Selected' : 'Add to journey';
                 var wrap = btn.closest('.mcard-wrap');
-                if (wrap) wrap.classList.toggle('mcard-wrap--selected', isSelected);
+                if (wrap) wrap.classList.toggle('mcard-wrap--selected', isInAny);
             }
 
             var svg = btn.querySelector('svg');
             if (svg) {
-                svg.innerHTML = isSelected
+                svg.innerHTML = isInAny
                     ? '<polyline points="20 6 9 17 4 12"/>'
                     : '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
             }
+        });
+    }
 
-            if (form) {
-                form.action = isSelected ? '/journey/deselect' : '/journey/select';
+    // Used by the legacy [data-select-button] forms (per-journey detail page remove rows).
+    // The card never carries [data-select-button] any more, so this only runs for detail-row removes.
+    function updateLegacySelectControls(slug, isSelected) {
+        var rows = document.querySelectorAll('[data-select-button][data-slug="' + cssEscape(slug) + '"]');
+        rows.forEach(function (btn) {
+            var row = btn.closest('.sel-row');
+            if (row && !isSelected) {
+                row.remove();
             }
         });
     }
 
     function updateSelectionCount(n) {
         var el = document.querySelector('.selection-count');
-        if (el) el.textContent = n;
+        if (el && typeof n !== 'undefined') el.textContent = n;
     }
 
     function cssEscape(s) {
@@ -132,26 +264,33 @@
         return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
     }
 
-    // Sortable lists on the overview page
+    /* ============================================================
+       Drag-to-reorder
+       ============================================================ */
     document.querySelectorAll('[data-sortable]').forEach(function (list) {
         if (typeof Sortable === 'undefined') return;
         Sortable.create(list, {
-            handle: '.sel-handle',
             animation: 150,
-            ghostClass: 'sel-row--ghost',
-            chosenClass: 'sel-row--chosen',
-            onEnd: function () { persistSelectionOrder(); }
+            ghostClass: 'sel-card--ghost',
+            chosenClass: 'sel-card--chosen',
+            dragClass: 'sel-card--drag',
+            // Whole card is draggable, but clicks on the title/skill chips/remove button
+            // still register as clicks (Sortable won't initiate a drag from them).
+            filter: '[data-module-slug], [data-skill-slug], [data-select-button], button[type="submit"]',
+            preventOnFilter: false,
+            onEnd: function () { persistSelectionOrder(list); }
         });
     });
 
-    function persistSelectionOrder() {
-        var rows = document.querySelectorAll('[data-sortable] [data-slug]');
+    function persistSelectionOrder(list) {
+        var endpoint = list.dataset.reorderEndpoint || '/journey/reorder';
+        var rows = list.querySelectorAll('[data-slug]');
         var slugs = Array.prototype.map.call(rows, function (r) { return r.dataset.slug; });
 
         var body = new FormData();
         slugs.forEach(function (s) { body.append('slugs[]', s); });
 
-        fetch('/journey/reorder', {
+        fetch(endpoint, {
             method: 'POST',
             body: body,
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
@@ -159,44 +298,62 @@
         }).catch(function () { /* swallow; UI already updated */ });
     }
 
-    // Auto-saving meta forms (client name, role name) — debounced
+    /* ============================================================
+       Debounced auto-saving meta forms (client, journey rename)
+       ============================================================ */
     document.querySelectorAll('[data-meta-form]').forEach(function (form) {
-        var input = form.querySelector('input[name="name"]');
         var status = form.querySelector('[data-meta-status]');
         var endpoint = form.dataset.metaEndpoint;
         var timer = null;
+        if (!endpoint) return;
 
         form.addEventListener('submit', function (e) { e.preventDefault(); });
-        if (!input || !endpoint) return;
 
-        input.addEventListener('input', function () {
+        function save(immediate) {
             if (status) status.textContent = '…';
             clearTimeout(timer);
             timer = setTimeout(function () {
-                var body = new FormData();
-                body.append('name', input.value);
                 fetch(endpoint, {
                     method: 'POST',
-                    body: body,
+                    body: new FormData(form),
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     credentials: 'same-origin'
                 })
                 .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
                 .then(function () { if (status) { status.textContent = 'Saved'; setTimeout(function () { status.textContent = ''; }, 1200); } })
                 .catch(function () { if (status) status.textContent = 'Not saved'; });
-            }, 400);
+            }, immediate ? 0 : 400);
+        }
+
+        form.addEventListener('input', function (e) {
+            if (!e.target.matches('input[type="text"]')) return;
+            save(false);
+        });
+        form.addEventListener('change', function (e) {
+            if (!e.target.matches('select')) return;
+            save(true);
         });
     });
 
-    // Scrim click
+    /* ============================================================
+       Scrim + ESC for both overlays
+       ============================================================ */
     if (scrim) scrim.addEventListener('click', closePanel);
 
-    // ESC key
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closePanel();
+        if (e.key === 'Escape') {
+            // Close whichever overlay is open. Modal first (it's on top).
+            if (jmModal && jmModal.classList.contains('open')) {
+                closeJourneyModal();
+            } else {
+                closePanel();
+            }
+        }
     });
 
-    // Filter form auto-submit — preserve scroll position across the reload
+    /* ============================================================
+       Filter form auto-submit — preserve scroll position
+       ============================================================ */
     const filterForm = document.querySelector('[data-filter-form]');
     if (filterForm) {
         const SCROLL_KEY = 'journey:scroll:' + location.pathname;
@@ -221,7 +378,9 @@
         });
     }
 
-    // Toast helper
+    /* ============================================================
+       Toast helper
+       ============================================================ */
     window.showToast = function (msg) {
         var toast = document.getElementById('toast');
         if (!toast) return;

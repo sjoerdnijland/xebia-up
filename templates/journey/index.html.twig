@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients &amp; journeys — Xebia Up{% endblock %}
+
+{% block body %}
+<div class="intro">
+    <div class="eyebrow">In-company · Clients</div>
+    <h1>Your clients &amp; journeys</h1>
+    <p>
+        {% if clientGroups|length == 0 %}
+            No clients yet. Start by creating the client this journey is for.
+        {% else %}
+            {{ clientGroups|length }} client{% if clientGroups|length != 1 %}s{% endif %},
+            {{ totalJourneys }} journey{% if totalJourneys != 1 %}s{% endif %}.
+            Open a journey to reorder modules or download its PDF.
+        {% endif %}
+    </p>
+</div>
+
+{% for group in clientGroups %}
+{% set client = group.client %}
+{% set journeys = group.journeys %}
+<section class="client-card">
+    <header class="client-card-head">
+        <div class="client-card-title">
+            <h2>{{ client.name }}</h2>
+            <span class="client-card-count">{{ journeys|length }} journey{% if journeys|length != 1 %}s{% endif %}</span>
+        </div>
+        <div class="client-card-actions">
+            <form method="post" action="{{ path('client_rename', {id: client.id}) }}" class="client-rename-form">
+                <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+                <input type="text" name="name" value="{{ client.name }}" maxlength="120" required>
+                <button type="submit" class="btn-ghost btn-sm">Rename</button>
+            </form>
+            <form method="post" action="{{ path('client_delete', {id: client.id}) }}"
+                  onsubmit="return confirm('Delete {{ client.name }} and all its journeys?');">
+                <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+                <button type="submit" class="btn-ghost btn-sm btn-danger">Delete client</button>
+            </form>
+        </div>
+    </header>
+
+    {% if journeys|length > 0 %}
+    <ul class="journey-index-list">
+        {% for journey in journeys %}
+        <li class="journey-index-row">
+            <a href="{{ path('journey_detail', {id: journey.id}) }}" class="journey-index-link">
+                <span class="journey-index-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                </span>
+                <div class="journey-index-text">
+                    <span class="journey-index-name">{{ journey.name }}</span>
+                    <span class="journey-index-meta">
+                        {% if journey.audience %}{{ journey.audience }} · {% endif %}{{ journey.moduleSlugs|length }} module{% if journey.moduleSlugs|length != 1 %}s{% endif %}
+                    </span>
+                </div>
+                <span class="journey-index-arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+            </a>
+            <form method="post" action="{{ path('journey_id_delete', {id: journey.id}) }}"
+                  onsubmit="return confirm('Delete &quot;{{ journey.name }}&quot;?');">
+                <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+                <button type="submit" class="btn-remove" aria-label="Delete journey">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="client-card-empty">No journeys for this client yet.</p>
+    {% endif %}
+
+    <form method="post" action="{{ path('journey_create') }}" class="journey-add-form">
+        <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+        <input type="hidden" name="clientId" value="{{ client.id }}">
+        <input type="text" name="name" placeholder="Journey name (e.g. PO AI Ambassadors)" required maxlength="120">
+        <input type="text" name="audience" placeholder="Audience (e.g. Product Owners)" maxlength="120">
+        <button type="submit" class="btn-primary btn-sm">Add a journey for {{ client.name }}</button>
+    </form>
+</section>
+{% endfor %}
+
+<div class="journey-index-create">
+    <h2 class="journey-index-create-title">
+        {% if clientGroups|length == 0 %}Create your first client{% else %}Add another client{% endif %}
+    </h2>
+    <form method="post" action="{{ path('client_create') }}" class="journey-index-create-form">
+        <input type="hidden" name="_next" value="{{ path('journey_index') }}">
+        <input type="text" name="name" placeholder="Client name (e.g. Acme Corp)" required maxlength="120">
+        <button type="submit" class="btn-primary">Create client</button>
+    </form>
+</div>
+{% endblock %}

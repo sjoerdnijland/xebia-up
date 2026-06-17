@@ -203,26 +203,20 @@
                     {% endif %}
                 </button>
                 {% if journey.on %}
-                <form method="post"
-                      action="{{ path(isSelected ? 'journey_deselect' : 'journey_select') }}"
-                      class="mcard-select-form"
-                      data-select-form>
-                    <input type="hidden" name="slug" value="{{ module.slug }}">
-                    <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
-                    <button type="submit"
-                            class="mcard-select{% if isSelected %} mcard-select--on{% endif %}"
-                            data-select-button
-                            data-slug="{{ module.slug }}"
-                            aria-pressed="{{ isSelected ? 'true' : 'false' }}">
-                        {% if isSelected %}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            <span class="mcard-select-label">Selected</span>
-                        {% else %}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            <span class="mcard-select-label">Add to journey</span>
-                        {% endif %}
-                    </button>
-                </form>
+                <button type="button"
+                        class="mcard-select{% if isSelected %} mcard-select--on{% endif %}"
+                        data-add-journey
+                        data-slug="{{ module.slug }}"
+                        aria-haspopup="dialog"
+                        aria-pressed="{{ isSelected ? 'true' : 'false' }}">
+                    {% if isSelected %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span class="mcard-select-label">Selected</span>
+                    {% else %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span class="mcard-select-label">Add to journey</span>
+                    {% endif %}
+                </button>
                 {% endif %}
             </div>
             {% endfor %}
