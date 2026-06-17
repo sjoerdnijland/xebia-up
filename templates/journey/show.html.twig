@@ -14,19 +14,8 @@
         <p class="model-intro-lede">
             A durable human core, the capabilities for working and leading with AI, and three cross-cutting
             capabilities — shown as arrows — that run through everything. Every training module maps to the
-            model — so a learner can see exactly which capabilities a session grows. The colours below key
-            every module and journey.
+            model — so a learner can see exactly which capabilities a session grows.
         </p>
-        <ul class="model-legend">
-            {% for key, cap in capabilities %}
-            <li class="model-legend-item">
-                <span class="model-legend-swatch" style="background: {{ cap.color }}"></span>
-                <span class="model-legend-label">
-                    {{ cap.name }}{% if cap.kind == 'enabler' %} <span class="model-legend-kind">· enabler</span>{% endif %}
-                </span>
-            </li>
-            {% endfor %}
-        </ul>
         <p class="model-intro-cta">
             <a class="model-intro-link" href="{{ path('skill_show', {category: category.slug}) }}">
                 Explore the full {{ category.name }} Skills &amp; Capabilities model →
@@ -156,12 +145,6 @@
     {% set mods = byLevel[level.slug]|default([]) %}
     {% if mods|length > 0 or not filtersActive %}
     <div class="path-level">
-        <div class="level-rail">
-            <div class="level-n">Level {{ level.depth }}</div>
-            <div class="level-name">{{ level.name }}</div>
-            <div class="level-spine" style="background: {{ level.colorHex }}"></div>
-            <div class="level-blurb">{{ level.blurb }}</div>
-        </div>
         <div class="level-cards">
             {% if mods|length == 0 %}
             <div class="level-empty">No modules at this level{% if filtersActive %} match the filters{% endif %} yet.</div>

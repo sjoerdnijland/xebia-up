@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Design tailored learning experiences — Xebia Up{% endblock %}
+
+{% block body %}
+<section class="home-hero">
+    <div class="eyebrow">Xebia Up · Composable learning</div>
+    <h1 class="home-hero-title">Design tailored learning experiences</h1>
+    <p class="home-hero-lede">
+        Pick a discipline, shape a role-specific journey, and book the sessions that grow the
+        skills that actually matter. Start by exploring what's on offer below.
+    </p>
+</section>
+
+{% for cat in categories %}
+{% set mods = topByCategory[cat.slug]|default([]) %}
+{% if mods|length > 0 %}
+<section class="home-cat">
+    <header class="home-cat-head">
+        <div class="home-cat-title">
+            <div class="eyebrow">{{ cat.tag }}</div>
+            <h2>{{ cat.name }}</h2>
+        </div>
+        <a class="home-cat-cta" href="{{ path('journey_show', {category: cat.slug}) }}">
+            Design the {{ cat.name }} journey
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+    </header>
+
+    <div class="home-cards">
+        {% for module in mods %}
+        {% set capKey = moduleCapabilities[module.slug]|default(null) %}
+        {% set mcardCap = capKey and capabilities[capKey] is defined ? capabilities[capKey] : null %}
+        <button class="home-card" data-module-slug="{{ module.slug }}" type="button"
+                {% if mcardCap %}style="--cap-color: {{ mcardCap.color }}"{% endif %}>
+            <span class="home-card-meta">
+                <span class="home-card-level" style="background: {{ module.level.tintHex }}; color: {{ module.level.colorHex }};">
+                    L{{ module.level.depth }} · {{ module.level.name }}
+                </span>
+                {% if mcardCap %}
+                <span class="cap-tag cap-tag--{{ mcardCap.kind }}"
+                      style="--cap-color: {{ mcardCap.color }}"
+                      title="{{ mcardCap.name }}">
+                    <span class="cap-tag-dot" aria-hidden="true"></span>
+                    <span class="cap-tag-label">{{ mcardCap.tag }}</span>
+                </span>
+                {% endif %}
+            </span>
+            <span class="home-card-title">{{ module.title }}</span>
+            <span class="home-card-desc">{{ module.description }}</span>
+        </button>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endfor %}
+{% endblock %}

@@ -17,9 +17,45 @@ use Symfony\Component\Routing\Attribute\Route;
 class JourneyController extends AbstractController
 {
     #[Route('/', name: 'home')]
-    public function index(): Response
-    {
-        return $this->redirectToRoute('journey_show', ['category' => 'ai']);
+    public function index(
+        CategoryRepository $categoryRepo,
+        ModuleRepository $moduleRepo,
+        AiCapabilityMap $capabilityMap,
+    ): Response {
+        $categories = $categoryRepo->findAllOrdered();
+
+        $topByCategory = [];
+        $capByModule = [];
+        foreach ($categories as $cat) {
+            // findByCategory orders by level depth then position, so the first hit
+            // per level is the lowest-positioned module at that level.
+            $picksByLevel = [];
+            foreach ($moduleRepo->findByCategory($cat) as $m) {
+                $levelSlug = $m->getLevel()->getSlug();
+                if (!isset($picksByLevel[$levelSlug])) {
+                    $picksByLevel[$levelSlug] = $m;
+                }
+            }
+            // Preserve depth order (the array is already in level-depth order from the query).
+            $mods = array_values($picksByLevel);
+            $topByCategory[$cat->getSlug()] = $mods;
+
+            if ($cat->getSlug() === 'ai') {
+                foreach ($mods as $m) {
+                    $key = $capabilityMap->forModule($m->getSlug());
+                    if ($key !== null) {
+                        $capByModule[$m->getSlug()] = $key;
+                    }
+                }
+            }
+        }
+
+        return $this->render('home.html.twig', [
+            'categories' => $categories,
+            'topByCategory' => $topByCategory,
+            'capabilities' => $capabilityMap->all(),
+            'moduleCapabilities' => $capByModule,
+        ]);
     }
 
     #[Route('/journeys/{category}', name: 'journey_show')]

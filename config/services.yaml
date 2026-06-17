@@ -1,5 +1,6 @@
 parameters:
     site_access.password: 'academy2026'
+    feature.show_skills_on_overview: false
 
 services:
     _defaults:
@@ -7,6 +8,7 @@ services:
         autoconfigure: true
         bind:
             string $siteAccessPassword: '%site_access.password%'
+            bool $showSkillsOnOverview: '%feature.show_skills_on_overview%'
 
     App\:
         resource: '../src/'

@@ -90,7 +90,7 @@
                 </a>
                 <span class="sel-row-desc">
                     {{ module.description }}
-                    {% if module.skills|length > 0 %}
+                    {% if showSkills|default(false) and module.skills|length > 0 %}
                     <span class="sel-row-skills">
                         {% for skill in module.skills %}
                         {% set cap = capabilities[skill.capabilityKey]|default(null) %}

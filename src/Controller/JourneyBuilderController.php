@@ -18,8 +18,10 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class JourneyBuilderController extends AbstractController
 {
-    public function __construct(private readonly JourneyBuilder $journey)
-    {
+    public function __construct(
+        private readonly JourneyBuilder $journey,
+        private readonly bool $showSkillsOnOverview = false,
+    ) {
     }
 
     #[Route('/mode/toggle', name: 'in_company_toggle', methods: ['POST'])]
@@ -133,6 +135,7 @@ class JourneyBuilderController extends AbstractController
             'clientName' => $this->journey->getClientName(),
             'roleName' => $this->journey->getRoleName(),
             'capabilities' => $capabilityMap->all(),
+            'showSkills' => $this->showSkillsOnOverview,
         ]);
     }
 
