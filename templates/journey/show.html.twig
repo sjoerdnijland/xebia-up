@@ -9,7 +9,7 @@
 <section class="model-intro">
     <div class="model-intro-copy">
         <div class="eyebrow">One model, one language</div>
-        <h1 class="model-intro-title">The AI Skills &amp; Capabilities model</h1>
+        <h1 class="model-intro-title">Build your AI learning journey</h1>
         <p class="model-intro-lede">
             A durable human core, the capabilities for working and leading with AI, and three cross-cutting
             capabilities — shown as arrows — that run through everything. Every training module maps to the
@@ -36,63 +36,110 @@
 </section>
 {% endif %}
 
-<div class="intro">
-    <div class="eyebrow">{{ category.tag }} · Skill matrix</div>
-    <h1>Build your {{ category.name }} learning journey</h1>
-    <p>Skill-centric modules mapped across four levels and every product role. Pick a module to see what you'll learn and book a seat in an upcoming session.</p>
-</div>
+<div class="layout">
+    <aside class="filters" aria-label="Filters">
+        <form method="get" action="{{ path('journey_show', {category: category.slug}) }}"
+              class="filters-form" data-filter-form>
+            <div class="filters-head">
+                <h2 class="filters-title">Filters</h2>
+                {% if filtersActive %}
+                <a class="filters-clear" href="{{ path('journey_show', {category: category.slug}) }}">Clear</a>
+                {% endif %}
+            </div>
 
-<div class="toolbar">
-    <fieldset class="filter-group">
-        <legend class="filter-group-title">Role</legend>
-        <div class="filter-chips">
-            <a href="{{ path('journey_show', {category: category.slug, type: activeType ? activeType.slug : null}) }}"
-               class="chip{% if not activeRole %} active{% endif %}">
-                All roles
-            </a>
-            {% for role in roles %}
-            <a href="{{ path('journey_show', {category: category.slug, role: role.slug, type: activeType ? activeType.slug : null}) }}"
-               class="chip{% if activeRole and activeRole.slug == role.slug %} active{% endif %}">
-                {{ role.name }}
-                <span class="chip-count">{{ roleCounts[role.slug]|default(0) }}</span>
-            </a>
-            {% endfor %}
-        </div>
-    </fieldset>
-    <fieldset class="filter-group">
-        <legend class="filter-group-title">Format</legend>
-        <div class="filter-chips">
-            <a href="{{ path('journey_show', {category: category.slug, role: activeRole ? activeRole.slug : null}) }}"
-               class="chip{% if not activeType %} active{% endif %}">
-                All formats
-            </a>
-            {% for type in types %}
-            <a href="{{ path('journey_show', {category: category.slug, role: activeRole ? activeRole.slug : null, type: type.slug}) }}"
-               class="chip{% if activeType and activeType.slug == type.slug %} active{% endif %}">
-                {{ type.name }}
-                <span class="chip-count">{{ typeCounts[type.slug]|default(0) }}</span>
-            </a>
-            {% endfor %}
-        </div>
-    </fieldset>
-</div>
+            {% if capabilities|length > 0 %}
+            <details class="filter-section" open>
+                <summary class="filter-section-title">Skill area</summary>
+                <ul class="filter-list">
+                    {% for key, cap in capabilities %}
+                    {% set checked = key in activeCapabilities %}
+                    <li class="filter-row">
+                        <label class="filter-check">
+                            <input type="checkbox" name="capability[]" value="{{ key }}"
+                                   {% if checked %}checked{% endif %}>
+                            <span class="filter-box" aria-hidden="true"></span>
+                            <span class="filter-swatch" style="background: {{ cap.color }}"></span>
+                            <span class="filter-label">{{ cap.tag }}</span>
+                            <span class="filter-count">{{ capabilityCounts[key]|default(0) }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+            {% endif %}
+
+            <details class="filter-section" open>
+                <summary class="filter-section-title">Session type</summary>
+                <ul class="filter-list">
+                    {% for type in types %}
+                    {% set checked = type.slug in activeTypes %}
+                    <li class="filter-row">
+                        <label class="filter-check">
+                            <input type="checkbox" name="type[]" value="{{ type.slug }}"
+                                   {% if checked %}checked{% endif %}>
+                            <span class="filter-box" aria-hidden="true"></span>
+                            <span class="filter-label">{{ type.name }}</span>
+                            <span class="filter-count">{{ typeCounts[type.slug]|default(0) }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+
+            <details class="filter-section" open>
+                <summary class="filter-section-title">Role</summary>
+                <ul class="filter-list">
+                    {% for role in roles %}
+                    {% set checked = role.slug in activeRoles %}
+                    <li class="filter-row">
+                        <label class="filter-check">
+                            <input type="checkbox" name="role[]" value="{{ role.slug }}"
+                                   {% if checked %}checked{% endif %}>
+                            <span class="filter-box" aria-hidden="true"></span>
+                            <span class="filter-label">{{ role.name }}</span>
+                            <span class="filter-count">{{ roleCounts[role.slug]|default(0) }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+
+            <details class="filter-section" open>
+                <summary class="filter-section-title">Level</summary>
+                <ul class="filter-list">
+                    {% for level in levels %}
+                    {% set checked = level.slug in activeLevels %}
+                    <li class="filter-row">
+                        <label class="filter-check">
+                            <input type="checkbox" name="level[]" value="{{ level.slug }}"
+                                   {% if checked %}checked{% endif %}>
+                            <span class="filter-box" aria-hidden="true"></span>
+                            <span class="filter-label">{{ level.name }}</span>
+                            <span class="filter-count">{{ levelCounts[level.slug]|default(0) }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+
+            <noscript>
+                <button type="submit" class="filters-apply">Apply</button>
+            </noscript>
+        </form>
+    </aside>
 
 <div class="pathway">
     <div class="path-head">
-        {% if activeRole %}
-        <div class="path-avatar" style="background: #831B84">{{ activeRole.shortCode }}</div>
-        {% else %}
         <div class="path-avatar path-avatar--all">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
-        {% endif %}
         <div>
-            <h2>{% if activeRole %}{{ activeRole.name }} journey{% else %}All modules{% endif %}</h2>
+            <h2>{% if filtersActive %}Filtered modules{% else %}All modules{% endif %}</h2>
             <p>
-                {% if activeRole %}
-                    {{ totalModules }} module{% if totalModules != 1 %}s{% endif %} shaped for this persona, across four levels.
+                {% if filtersActive %}
+                    {{ totalModules }} module{% if totalModules != 1 %}s{% endif %} match the selected filters.
                 {% else %}
-                    {{ totalModules }} skill-centric module{% if totalModules != 1 %}s{% endif %} across four levels. Focus a role above to see a tailored path.
+                    {{ totalModules }} skill-centric module{% if totalModules != 1 %}s{% endif %} across four levels. Use the filters to focus on a role, skill area or level.
                 {% endif %}
             </p>
         </div>
@@ -100,6 +147,7 @@
 
     {% for level in levels %}
     {% set mods = byLevel[level.slug]|default([]) %}
+    {% if mods|length > 0 or not filtersActive %}
     <div class="path-level">
         <div class="level-rail">
             <div class="level-n">Level {{ level.depth }}</div>
@@ -109,13 +157,15 @@
         </div>
         <div class="level-cards">
             {% if mods|length == 0 %}
-            <div class="level-empty">No modules at this level{% if activeRole %} for this role{% endif %} yet.</div>
+            <div class="level-empty">No modules at this level{% if filtersActive %} match the filters{% endif %} yet.</div>
             {% else %}
             {% for module in mods %}
             {% set nextSession = module.nextSession %}
             {% set isSelected = journey.isSelected(module.slug) %}
+            {% set capKey = moduleCapabilities[module.slug]|default(null) %}
+            {% set mcardCap = capKey and capabilities[capKey] is defined ? capabilities[capKey] : null %}
             <div class="mcard-wrap{% if journey.on %} mcard-wrap--ic{% endif %}{% if journey.on and isSelected %} mcard-wrap--selected{% endif %}">
-                <button class="mcard" data-module-slug="{{ module.slug }}" type="button">
+                <button class="mcard" data-module-slug="{{ module.slug }}" type="button"{% if mcardCap %} style="--cap-color: {{ mcardCap.color }}"{% endif %}>
                     <span class="mcard-tags">
                         {% if module.isForAllRoles(totalRoles) %}
                         <span class="core-badge">
@@ -125,20 +175,18 @@
                         {% else %}
                         <span class="role-tags">
                             {% for role in module.roles %}
-                            <span class="rtag {% if activeRole and activeRole.slug == role.slug %}rtag--active{% endif %}">{{ role.shortCode }}</span>
+                            <span class="rtag {% if role.slug in activeRoles %}rtag--active{% endif %}">{{ role.shortCode }}</span>
                             {% endfor %}
                         </span>
                         {% endif %}
                     </span>
                     <span class="mcard-title">{{ module.title }}</span>
-                    {% set capKey = moduleCapabilities[module.slug]|default(null) %}
-                    {% if capKey and capabilities[capKey] is defined %}
-                    {% set cap = capabilities[capKey] %}
-                    <span class="cap-tag cap-tag--{{ cap.kind }}"
-                          style="--cap-color: {{ cap.color }}"
-                          title="{{ cap.name }}">
+                    {% if mcardCap %}
+                    <span class="cap-tag cap-tag--{{ mcardCap.kind }}"
+                          style="--cap-color: {{ mcardCap.color }}"
+                          title="{{ mcardCap.name }}">
                         <span class="cap-tag-dot" aria-hidden="true"></span>
-                        <span class="cap-tag-label">{{ cap.tag }}</span>
+                        <span class="cap-tag-label">{{ mcardCap.tag }}</span>
                     </span>
                     {% endif %}
                     {% if module.type %}
@@ -191,6 +239,8 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
     {% endfor %}
+</div>
 </div>
 {% endblock %}

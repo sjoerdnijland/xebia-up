@@ -177,6 +177,16 @@
         if (e.key === 'Escape') closePanel();
     });
 
+    // Filter form auto-submit
+    const filterForm = document.querySelector('[data-filter-form]');
+    if (filterForm) {
+        filterForm.addEventListener('change', function (e) {
+            if (e.target && e.target.matches('input[type="checkbox"]')) {
+                filterForm.submit();
+            }
+        });
+    }
+
     // Toast helper
     window.showToast = function (msg) {
         var toast = document.getElementById('toast');

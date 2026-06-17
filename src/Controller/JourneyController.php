@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Module;
 use App\Repository\CategoryRepository;
 use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
@@ -37,21 +38,76 @@ class JourneyController extends AbstractController
             throw $this->createNotFoundException('Category not found');
         }
 
-        $roleSlug = $request->query->get('role');
-        $activeRole = $roleSlug ? $roleRepo->findOneBy(['slug' => $roleSlug]) : null;
+        $isAi = $cat->getSlug() === 'ai';
 
-        $typeSlug = $request->query->get('type');
-        $activeType = $typeSlug ? $typeRepo->findOneBy(['slug' => $typeSlug]) : null;
+        $activeRoles = $this->multiParam($request, 'role');
+        $activeTypes = $this->multiParam($request, 'type');
+        $activeLevels = $this->multiParam($request, 'level');
+        $activeCapabilities = $isAi ? $this->multiParam($request, 'capability') : [];
 
         $allCategories = $categoryRepo->findAllOrdered();
         $levels = $levelRepo->findAllOrdered();
         $roles = $roleRepo->findAllOrdered();
         $types = $typeRepo->findAllOrdered();
-        $modules = $moduleRepo->findByCategory($cat, $activeRole, $activeType);
-        $roleCounts = $moduleRepo->countByCategoryAndRole($cat);
-        $typeCounts = $moduleRepo->countByCategoryAndType($cat);
 
-        // Group modules by level
+        $allModules = $moduleRepo->findByCategory($cat);
+
+        $moduleCapabilities = [];
+        if ($isAi) {
+            foreach ($allModules as $module) {
+                $key = $capabilityMap->forModule($module->getSlug());
+                if ($key !== null) {
+                    $moduleCapabilities[$module->getSlug()] = $key;
+                }
+            }
+        }
+
+        $modules = array_values(array_filter(
+            $allModules,
+            fn(Module $m) => $this->matchesFilters(
+                $m,
+                $activeRoles,
+                $activeTypes,
+                $activeLevels,
+                $activeCapabilities,
+                $moduleCapabilities,
+            ),
+        ));
+
+        $roleCounts = [];
+        foreach ($roles as $role) {
+            $roleCounts[$role->getSlug()] = 0;
+        }
+        $typeCounts = [];
+        foreach ($types as $type) {
+            $typeCounts[$type->getSlug()] = 0;
+        }
+        $levelCounts = [];
+        foreach ($levels as $level) {
+            $levelCounts[$level->getSlug()] = 0;
+        }
+        $capabilityCounts = [];
+        if ($isAi) {
+            foreach ($capabilityMap->all() as $key => $_) {
+                $capabilityCounts[$key] = 0;
+            }
+        }
+        foreach ($allModules as $module) {
+            foreach ($module->getRoles() as $r) {
+                $roleCounts[$r->getSlug()] = ($roleCounts[$r->getSlug()] ?? 0) + 1;
+            }
+            if ($module->getType()) {
+                $slug = $module->getType()->getSlug();
+                $typeCounts[$slug] = ($typeCounts[$slug] ?? 0) + 1;
+            }
+            $levelCounts[$module->getLevel()->getSlug()]
+                = ($levelCounts[$module->getLevel()->getSlug()] ?? 0) + 1;
+            if ($isAi && isset($moduleCapabilities[$module->getSlug()])) {
+                $cap = $moduleCapabilities[$module->getSlug()];
+                $capabilityCounts[$cap] = ($capabilityCounts[$cap] ?? 0) + 1;
+            }
+        }
+
         $byLevel = [];
         foreach ($levels as $level) {
             $byLevel[$level->getSlug()] = [];
@@ -61,17 +117,9 @@ class JourneyController extends AbstractController
         }
 
         $totalRoles = count($roles);
+        $capabilities = $isAi ? $capabilityMap->all() : [];
 
-        $capabilities = $cat->getSlug() === 'ai' ? $capabilityMap->all() : [];
-        $moduleCapabilities = [];
-        if ($cat->getSlug() === 'ai') {
-            foreach ($modules as $module) {
-                $key = $capabilityMap->forModule($module->getSlug());
-                if ($key !== null) {
-                    $moduleCapabilities[$module->getSlug()] = $key;
-                }
-            }
-        }
+        $filtersActive = $activeRoles || $activeTypes || $activeLevels || $activeCapabilities;
 
         return $this->render('journey/show.html.twig', [
             'category' => $cat,
@@ -80,14 +128,72 @@ class JourneyController extends AbstractController
             'roles' => $roles,
             'types' => $types,
             'byLevel' => $byLevel,
-            'activeRole' => $activeRole,
-            'activeType' => $activeType,
+            'activeRoles' => $activeRoles,
+            'activeTypes' => $activeTypes,
+            'activeLevels' => $activeLevels,
+            'activeCapabilities' => $activeCapabilities,
             'roleCounts' => $roleCounts,
             'typeCounts' => $typeCounts,
+            'levelCounts' => $levelCounts,
+            'capabilityCounts' => $capabilityCounts,
             'totalModules' => count($modules),
             'totalRoles' => $totalRoles,
             'capabilities' => $capabilities,
             'moduleCapabilities' => $moduleCapabilities,
+            'filtersActive' => $filtersActive,
         ]);
+    }
+
+    /**
+     * Accept either ?key=slug (single, back-compat) or ?key[]=slug1&key[]=slug2.
+     *
+     * @return string[]
+     */
+    private function multiParam(Request $request, string $key): array
+    {
+        $all = $request->query->all();
+        $value = $all[$key] ?? null;
+        if (is_array($value)) {
+            return array_values(array_filter(
+                array_map('strval', $value),
+                fn($v) => $v !== '',
+            ));
+        }
+        if (is_string($value) && $value !== '') {
+            return [$value];
+        }
+        return [];
+    }
+
+    private function matchesFilters(
+        Module $m,
+        array $roles,
+        array $types,
+        array $levels,
+        array $capabilities,
+        array $moduleCapabilities,
+    ): bool {
+        if ($levels && !in_array($m->getLevel()->getSlug(), $levels, true)) {
+            return false;
+        }
+        if ($types) {
+            $typeSlug = $m->getType()?->getSlug();
+            if ($typeSlug === null || !in_array($typeSlug, $types, true)) {
+                return false;
+            }
+        }
+        if ($roles) {
+            $moduleRoleSlugs = array_map(fn($r) => $r->getSlug(), $m->getRoles()->toArray());
+            if (!array_intersect($roles, $moduleRoleSlugs)) {
+                return false;
+            }
+        }
+        if ($capabilities) {
+            $cap = $moduleCapabilities[$m->getSlug()] ?? null;
+            if ($cap === null || !in_array($cap, $capabilities, true)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
