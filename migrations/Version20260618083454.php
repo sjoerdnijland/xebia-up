@@ -14,6 +14,11 @@ final class Version20260618083454 extends AbstractMigration
         return 'Add duration_hours to module; add scrum.org modules with full titles, durations, and cross-category assignments; remove Facilitating Agile Ceremonies; rename Facilitating Events.';
     }
 
+    public function isTransactional(): bool
+    {
+        return false;
+    }
+
     public function up(Schema $schema): void
     {
         // Schema
@@ -38,13 +43,13 @@ final class Version20260618083454 extends AbstractMigration
         $this->addSql("UPDATE module SET duration_hours = 8 WHERE slug IN ('sc-psfs','sc-ppdv','sc-psm-ai','sc-pspo-ai')");
 
         // Cross-category assignments for scrum.org modules
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo' AND c.slug = 'product'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo-a' AND c.slug = 'product'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-ppdv' AND c.slug = 'product'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pal' AND c.slug = 'leadership'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pal-ebm' AND c.slug = 'leadership'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-psm-ai' AND c.slug = 'ai'");
-        $this->addSql("INSERT OR IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo-ai' AND c.slug = 'ai'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo' AND c.slug = 'product'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo-a' AND c.slug = 'product'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-ppdv' AND c.slug = 'product'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pal' AND c.slug = 'leadership'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pal-ebm' AND c.slug = 'leadership'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-psm-ai' AND c.slug = 'ai'");
+        $this->addSql("INSERT IGNORE INTO module_category (module_id, category_id) SELECT m.id, c.id FROM module m, category c WHERE m.slug = 'sc-pspo-ai' AND c.slug = 'ai'");
 
         // Remove Facilitating Agile Ceremonies (ag-i-2)
         $this->addSql("DELETE FROM booking WHERE session_id IN (SELECT id FROM session WHERE module_id = (SELECT id FROM module WHERE slug = 'ag-i-2'))");
@@ -62,6 +67,7 @@ final class Version20260618083454 extends AbstractMigration
     public function down(Schema $schema): void
     {
         $this->addSql('ALTER TABLE module DROP COLUMN duration_hours');
+
         $this->addSql("DELETE FROM module_category WHERE module_id IN (SELECT id FROM module WHERE slug IN ('sc-pspo','sc-pspo-a','sc-ppdv')) AND category_id = (SELECT id FROM category WHERE slug = 'product')");
         $this->addSql("DELETE FROM module_category WHERE module_id IN (SELECT id FROM module WHERE slug IN ('sc-pal','sc-pal-ebm')) AND category_id = (SELECT id FROM category WHERE slug = 'leadership')");
         $this->addSql("DELETE FROM module_category WHERE module_id IN (SELECT id FROM module WHERE slug IN ('sc-psm-ai','sc-pspo-ai')) AND category_id = (SELECT id FROM category WHERE slug = 'ai')");
