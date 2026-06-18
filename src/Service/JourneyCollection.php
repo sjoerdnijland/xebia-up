@@ -32,13 +32,23 @@ class JourneyCollection
         private readonly ClientRepository $clientRepo,
         private readonly JourneyRepository $journeyRepo,
         private readonly EntityManagerInterface $em,
+        private readonly bool $registrationOpen = true,
     ) {
+    }
+
+    public function isRegistrationOpen(): bool
+    {
+        return $this->registrationOpen;
     }
 
     /* --- mode --- */
 
     public function isOn(): bool
     {
+        // When registration is closed, in-company mode is always on
+        if (!$this->registrationOpen) {
+            return true;
+        }
         return (bool) ($this->session()?->get(self::KEY_MODE, false));
     }
 

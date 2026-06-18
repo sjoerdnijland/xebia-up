@@ -25,7 +25,7 @@ class BookingController extends AbstractController
         EntityManagerInterface $em,
         JourneyBuilder $journey,
     ): Response {
-        if ($journey->isOn()) {
+        if ($journey->isOn() || !$journey->isRegistrationOpen()) {
             return $this->redirectToRoute('module_show', ['slug' => $slug]);
         }
 

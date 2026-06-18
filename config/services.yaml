@@ -1,6 +1,7 @@
 parameters:
     site_access.password: 'academy2026'
     feature.show_skills_on_overview: true
+    feature.registration_open: '%env(bool:REGISTRATION_OPEN)%'
 
 services:
     _defaults:
@@ -9,6 +10,7 @@ services:
         bind:
             string $siteAccessPassword: '%site_access.password%'
             bool $showSkillsOnOverview: '%feature.show_skills_on_overview%'
+            bool $registrationOpen: '%feature.registration_open%'
 
     App\:
         resource: '../src/'

@@ -36,6 +36,7 @@
                    class="sub-tab{% if activeSection|default('') == 'skills' %} active{% endif %}">Skills model</a>
             </nav>
             {% endif %}
+            {% if journey.registrationOpen %}
             <form method="post" action="{{ path('in_company_toggle') }}" class="mode-form">
                 <input type="hidden" name="_next" value="{{ app.request.requestUri }}">
                 <button type="submit" class="mode-toggle{% if journey.on %} mode-toggle--on{% endif %}"
@@ -45,6 +46,7 @@
                     <span class="mode-label">In-company</span>
                 </button>
             </form>
+            {% endif %}
             {% if journey.on %}
             <a href="{{ path('journey_index') }}" class="selection-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>

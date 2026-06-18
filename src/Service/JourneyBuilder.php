@@ -25,6 +25,11 @@ class JourneyBuilder
         return $this->journeys->isOn();
     }
 
+    public function isRegistrationOpen(): bool
+    {
+        return $this->journeys->isRegistrationOpen();
+    }
+
     public function toggleMode(): bool
     {
         return $this->journeys->toggleMode();
