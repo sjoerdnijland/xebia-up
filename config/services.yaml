@@ -1,7 +1,7 @@
 parameters:
     site_access.password: 'academy2026'
     feature.show_skills_on_overview: true
-    feature.registration_open: '%env(bool:REGISTRATION_OPEN)%'
+    feature.registration_open: false
 
 services:
     _defaults:
