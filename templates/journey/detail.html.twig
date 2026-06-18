@@ -58,6 +58,16 @@
 </div>
 {% else %}
 <div class="sel-actions">
+    <div class="view-toggle" role="group" aria-label="View mode">
+        <button type="button" class="view-toggle-btn view-toggle-btn--active" data-view="roadmap" aria-pressed="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 8 8 4 16 9 21 5"/><polyline points="21 15 16 11 8 16 3 12"/><line x1="3" y1="8" x2="3" y2="20"/><line x1="21" y1="5" x2="21" y2="15"/></svg>
+            Roadmap
+        </button>
+        <button type="button" class="view-toggle-btn" data-view="list" aria-pressed="false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            List
+        </button>
+    </div>
     <a href="{{ path('journey_id_pdf', {id: currentJourney.id}) }}" class="btn-primary">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download PDF
@@ -76,7 +86,7 @@
         {% set cap = capabilities[module.skills|first.capabilityKey]|default(null) %}
     {% endif %}
     {% set category = module.categories.first %}
-    <li class="journey-step" data-slug="{{ module.slug }}"{% if cap %} style="--cap-color: {{ cap.color }}"{% endif %}>
+    <li class="journey-step" data-slug="{{ module.slug }}" data-index="{{ loop.index }}"{% if cap %} style="--cap-color: {{ cap.color }}"{% endif %}>
         <div class="journey-step-marker" aria-hidden="true">
             <span class="journey-step-num">{{ loop.index }}</span>
         </div>
@@ -133,4 +143,215 @@
 {% endif %}
 
 <script src="/js/vendor/sortable.min.js"></script>
+<script>
+(function () {
+    const COLS = 3;
+    const listEl = document.querySelector('.journey-path');
+    if (!listEl) return;
+    const reorderEndpoint = listEl.dataset.reorderEndpoint;
+    const btns = document.querySelectorAll('.view-toggle-btn');
+    let roadmapEl = null;
+
+    function getSteps() {
+        return Array.from(listEl.querySelectorAll('.journey-step'));
+    }
+
+    // ── Roadmap builder ──────────────────────────────────────────
+    function buildRoadmap() {
+        if (roadmapEl) roadmapEl.remove();
+        roadmapEl = document.createElement('div');
+        roadmapEl.className = 'roadmap-view';
+
+        const steps = getSteps();
+
+        for (let i = 0; i < steps.length; i += COLS) {
+            const chunk = steps.slice(i, i + COLS);
+            const rowIndex = Math.floor(i / COLS);
+            const reversed = rowIndex % 2 === 1;
+
+            // Vertical connector between rows
+            if (rowIndex > 0) {
+                const prevReversed = (rowIndex - 1) % 2 === 1;
+                const vc = document.createElement('div');
+                vc.className = 'roadmap-vert ' + (prevReversed ? 'roadmap-vert--left' : 'roadmap-vert--right');
+                roadmapEl.appendChild(vc);
+            }
+
+            const rowEl = document.createElement('div');
+            rowEl.className = 'roadmap-row';
+            rowEl.dataset.rowIndex = rowIndex;
+
+            // For reversed rows display cards right-to-left: reverse the array
+            const displayChunk = reversed ? [...chunk].reverse() : chunk;
+            const padCount = COLS - chunk.length;
+
+            // Prepend spacers for reversed incomplete rows (so real cards sit on the right)
+            if (reversed && padCount > 0) {
+                for (let s = 0; s < padCount; s++) {
+                    rowEl.appendChild(makeSpacerPair(reversed));
+                }
+            }
+
+            displayChunk.forEach((step, ci) => {
+                const card = makeCard(step, reversed);
+                rowEl.appendChild(card);
+                if (ci < displayChunk.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'roadmap-arrow' + (reversed ? ' roadmap-arrow--left' : '');
+                    rowEl.appendChild(arrow);
+                }
+            });
+
+            // Append spacers for normal incomplete rows (real cards sit on the left)
+            if (!reversed && padCount > 0) {
+                for (let s = 0; s < padCount; s++) {
+                    rowEl.appendChild(makeSpacerPair(reversed));
+                }
+            }
+
+            roadmapEl.appendChild(rowEl);
+        }
+
+        listEl.insertAdjacentElement('afterend', roadmapEl);
+        initRoadmapDrag();
+    }
+
+    function makeCard(step, reversed) {
+        const card = document.createElement('div');
+        card.className = 'roadmap-card';
+        card.dataset.slug = step.dataset.slug;
+        const capColor = step.style.getPropertyValue('--cap-color');
+        if (capColor) card.style.setProperty('--cap-color', capColor);
+
+        const num = document.createElement('div');
+        num.className = 'roadmap-num';
+        if (capColor) num.style.background = capColor;
+        num.textContent = step.dataset.index;
+
+        const article = step.querySelector('article').cloneNode(true);
+        article.querySelector('.journey-step-handle')?.remove();
+        article.querySelector('.journey-step-remove')?.remove();
+
+        card.appendChild(num);
+        card.appendChild(article);
+        return card;
+    }
+
+    function makeSpacerPair(reversed) {
+        const frag = document.createDocumentFragment();
+        const arrow = document.createElement('div');
+        arrow.className = 'roadmap-arrow roadmap-arrow--invis';
+        const spacer = document.createElement('div');
+        spacer.className = 'roadmap-card roadmap-card--spacer';
+        // For reversed rows spacers come first, so arrow then spacer
+        frag.appendChild(reversed ? arrow : spacer);
+        frag.appendChild(reversed ? spacer : arrow);
+        return frag;
+    }
+
+    // ── Roadmap drag (HTML5 native — works across nested rows) ───
+    function initRoadmapDrag() {
+        let draggingSlug = null;
+
+        roadmapEl.querySelectorAll('.roadmap-card:not(.roadmap-card--spacer)').forEach(card => {
+            card.draggable = true;
+
+            card.addEventListener('dragstart', e => {
+                draggingSlug = card.dataset.slug;
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => card.classList.add('roadmap-card--ghost'), 0);
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('roadmap-card--ghost');
+                roadmapEl.querySelectorAll('.roadmap-card--over').forEach(c => c.classList.remove('roadmap-card--over'));
+            });
+
+            card.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (card.dataset.slug !== draggingSlug) {
+                    roadmapEl.querySelectorAll('.roadmap-card--over').forEach(c => c.classList.remove('roadmap-card--over'));
+                    card.classList.add('roadmap-card--over');
+                }
+            });
+
+            card.addEventListener('drop', e => {
+                e.preventDefault();
+                const targetSlug = card.dataset.slug;
+                if (!draggingSlug || draggingSlug === targetSlug) return;
+
+                const steps = getSteps();
+                const slugs = steps.map(s => s.dataset.slug);
+                const fromIdx = slugs.indexOf(draggingSlug);
+                const toIdx   = slugs.indexOf(targetSlug);
+                slugs.splice(fromIdx, 1);
+                slugs.splice(toIdx, 0, draggingSlug);
+
+                const stepMap = Object.fromEntries(steps.map(s => [s.dataset.slug, s]));
+                slugs.forEach((slug, idx) => {
+                    const step = stepMap[slug];
+                    step.dataset.index = idx + 1;
+                    step.querySelector('.journey-step-num').textContent = idx + 1;
+                    listEl.appendChild(step);
+                });
+
+                persistOrder(slugs);
+                buildRoadmap();
+                roadmapEl.style.display = '';
+            });
+        });
+    }
+
+    function persistOrder(slugs) {
+        fetch(reorderEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slugs }),
+        });
+    }
+
+    // ── List drag (existing behaviour) ───────────────────────────
+    Sortable.create(listEl, {
+        handle: '.journey-step-handle',
+        animation: 150,
+        ghostClass: 'sel-card--ghost',
+        chosenClass: 'sel-card--chosen',
+        dragClass: 'sel-card--drag',
+        onEnd: function () {
+            const slugs = getSteps().map(s => s.dataset.slug);
+            getSteps().forEach((s, i) => {
+                s.dataset.index = i + 1;
+                s.querySelector('.journey-step-num').textContent = i + 1;
+            });
+            persistOrder(slugs);
+            if (roadmapEl) buildRoadmap(); // keep roadmap in sync
+        }
+    });
+
+    // ── View toggle ───────────────────────────────────────────────
+    function setView(mode) {
+        btns.forEach(b => {
+            const active = b.dataset.view === mode;
+            b.classList.toggle('view-toggle-btn--active', active);
+            b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        localStorage.setItem('journey-view', mode);
+
+        if (mode === 'roadmap') {
+            buildRoadmap();
+            listEl.style.display = 'none';
+            roadmapEl.style.display = '';
+        } else {
+            listEl.style.display = '';
+            if (roadmapEl) roadmapEl.style.display = 'none';
+        }
+    }
+
+    btns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+    const saved = localStorage.getItem('journey-view') ?? 'roadmap';
+    setView(saved);
+}());
+</script>
 {% endblock %}

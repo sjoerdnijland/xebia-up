@@ -939,8 +939,9 @@ body.panel-open { overflow: hidden; }
 .sel-empty p { margin-bottom: 14px; }
 .sel-empty-cats { display: flex; flex-wrap: wrap; gap: 8px; }
 
-.sel-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
-.sel-actions form { margin: 0; }
+.sel-actions { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.sel-actions form { margin: 0; margin-left: auto; }
+.sel-actions .btn-primary { margin-left: 0; }
 .btn-ghost {
     padding: 8px 14px; border-radius: 999px;
     background: transparent; color: var(--ink2);
@@ -1133,6 +1134,141 @@ body.panel-open { overflow: hidden; }
     .journey-step-num { font-size: 0.85rem; }
     .journey-path::before { left: 17px; }
 }
+
+/* ============================================================
+   View toggle
+   ============================================================ */
+.view-toggle {
+    display: flex; gap: 2px;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px;
+}
+.view-toggle-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 600; color: var(--ink3);
+    transition: all 0.15s;
+}
+.view-toggle-btn--active {
+    background: var(--surface); color: var(--ink);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.view-toggle-btn:hover:not(.view-toggle-btn--active) { color: var(--ink); }
+
+/* ============================================================
+   Roadmap view
+   ============================================================ */
+.roadmap-view { padding: 8px 0 32px; }
+
+.roadmap-row {
+    display: flex;
+    align-items: stretch;
+}
+
+/* Card */
+.roadmap-card {
+    flex: 1;
+    position: relative;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-top: 4px solid var(--cap-color, var(--line));
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    min-width: 0;
+}
+.roadmap-card:hover {
+    border-color: var(--cap-color, var(--purple));
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--cap-color, var(--purple)) 14%, transparent);
+}
+
+/* Step number bubble */
+.roadmap-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--velvet); color: #fff;
+    font-size: 0.82rem; font-weight: 700;
+    box-shadow: 0 0 0 3px var(--bg);
+    flex-shrink: 0; align-self: flex-start;
+    margin-bottom: 2px;
+}
+
+/* Horizontal arrow between cards */
+.roadmap-arrow {
+    flex-shrink: 0;
+    width: 36px;
+    position: relative;
+    align-self: center;
+    height: 2px;
+    background: var(--line);
+}
+.roadmap-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%; right: -1px;
+    width: 7px; height: 7px;
+    border-top: 2px solid var(--line);
+    border-right: 2px solid var(--line);
+    transform: translateY(-50%) rotate(45deg);
+}
+.roadmap-arrow--left::after {
+    right: auto; left: -1px;
+    transform: translateY(-50%) rotate(-135deg);
+}
+
+/* Vertical connector between rows */
+.roadmap-vert {
+    position: relative;
+    height: 56px;
+}
+.roadmap-vert::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--line);
+    border-radius: 2px;
+}
+.roadmap-vert::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 8px; height: 8px;
+    border: 2px solid var(--line);
+}
+/* After a left→right row: line drops from right third, arrow points down-left */
+.roadmap-vert--right::before { right: calc(100% / (3 * 2) - 1px); }
+.roadmap-vert--right::after {
+    right: calc(100% / (3 * 2) - 5px);
+    border-top: none; border-right: none;
+    transform: rotate(-45deg);
+}
+/* After a right→left row: line drops from left third, arrow points down-right */
+.roadmap-vert--left::before { left: calc(100% / (3 * 2) - 1px); }
+.roadmap-vert--left::after {
+    left: calc(100% / (3 * 2) - 5px);
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+}
+
+/* Spacer cards for incomplete last row */
+.roadmap-card--spacer { visibility: hidden; pointer-events: none; }
+.roadmap-arrow--invis { visibility: hidden; }
+/* Drag states */
+.roadmap-card--ghost { opacity: 0.25; }
+.roadmap-card--over {
+    border-color: var(--cap-color, var(--purple)) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--cap-color, var(--purple)) 30%, transparent);
+}
+.roadmap-card[data-slug] { cursor: grab; }
+.roadmap-card[data-slug]:active { cursor: grabbing; }
+
+/* Roadmap card internals */
+.roadmap-card .journey-step-tags { margin: 0; }
+.roadmap-card .journey-step-title { font-size: 0.875rem; cursor: pointer; }
+.roadmap-card .journey-step-title:hover { color: var(--velvet); }
+.roadmap-card .journey-step-desc { font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Draggable module cards (journey detail page) */
 .sel-cards {
