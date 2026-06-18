@@ -21,8 +21,11 @@ final class Version20260618083454 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // Schema
-        $this->addSql('ALTER TABLE module ADD COLUMN duration_hours INTEGER NOT NULL DEFAULT 4');
+        // Schema — skip if column already exists (may have been added manually)
+        $columns = $this->connection->executeQuery('SHOW COLUMNS FROM module LIKE \'duration_hours\'')->fetchAllAssociative();
+        if (empty($columns)) {
+            $this->addSql('ALTER TABLE module ADD COLUMN duration_hours INTEGER NOT NULL DEFAULT 4');
+        }
 
         // Scrum.org module titles
         $this->addSql("UPDATE module SET title = 'Professional Scrum Master (PSM)' WHERE slug = 'sc-psm'");
