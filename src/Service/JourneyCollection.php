@@ -49,7 +49,7 @@ class JourneyCollection
         if (!$this->registrationOpen) {
             return true;
         }
-        return (bool) ($this->session()?->get(self::KEY_MODE, false));
+        return (bool) ($this->session()?->get(self::KEY_MODE, true));
     }
 
     public function toggleMode(): bool
