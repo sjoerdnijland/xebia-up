@@ -12,7 +12,11 @@
         {% if totalSelected == 0 %}
             No modules in this journey yet. Head back to a category and add modules to build it out.
         {% else %}
-            {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %} in this journey{% if currentJourney.audience %} for <strong>{{ currentJourney.audience }}</strong>{% endif %}. Drag a step to change its order.
+            {% set totalHours = 0 %}
+            {% for m in modulesInOrder %}{% set totalHours = totalHours + m.durationHours %}{% endfor %}
+            {% if totalHours % 8 == 0 %}{% set totalDuration = (totalHours / 8) ~ ' day' ~ (totalHours / 8 != 1 ? 's' : '') %}
+            {% else %}{% set totalDuration = totalHours ~ ' hours' %}{% endif %}
+            {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %} · {{ totalDuration }}{% if currentJourney.audience %} · for <strong>{{ currentJourney.audience }}</strong>{% endif %}. Drag a step to change its order.
         {% endif %}
     </p>
 </div>
@@ -97,6 +101,10 @@
                 {% if module.type %}
                 <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
                 {% endif %}
+                <span class="step-duration">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {{ module.formattedDuration }}
+                </span>
             </div>
             <button type="button" class="journey-step-title" data-module-slug="{{ module.slug }}">
                 {{ module.title }}

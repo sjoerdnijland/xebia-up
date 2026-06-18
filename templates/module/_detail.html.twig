@@ -16,6 +16,16 @@
         {% if module.type %}
         <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
         {% endif %}
+        <span class="duration-pill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {{ module.formattedDuration }}
+        </span>
+        {% if module.slug starts with 'sc-' %}
+        <span class="provider-pill">
+            <img src="/img/scrum-org-logo.png" alt="Scrum.org" class="provider-pill-logo">
+            Scrum.org
+        </span>
+        {% endif %}
     </div>
     <h2 class="panel-title">{{ module.title }}</h2>
     <p class="panel-desc">{{ module.description }}</p>

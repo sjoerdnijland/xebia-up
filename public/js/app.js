@@ -278,7 +278,12 @@
             // still register as clicks (Sortable won't initiate a drag from them).
             filter: '[data-module-slug], [data-skill-slug], [data-select-button], button[type="submit"]',
             preventOnFilter: false,
-            onEnd: function () { persistSelectionOrder(list); }
+            onEnd: function () {
+                persistSelectionOrder(list);
+                list.querySelectorAll('.journey-step-num').forEach(function (el, i) {
+                    el.textContent = i + 1;
+                });
+            }
         });
     });
 

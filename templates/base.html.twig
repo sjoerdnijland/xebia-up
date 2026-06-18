@@ -28,7 +28,7 @@
         {% endif %}
 
         <div class="hdr-right">
-            {% if activeCategory|default('') %}
+            {% if activeCategory|default('') == 'ai' %}
             <nav class="sub-tabs" aria-label="Section">
                 <a href="{{ path('journey_show', {category: activeCategory}) }}"
                    class="sub-tab{% if activeSection|default('journey') == 'journey' %} active{% endif %}">Journey</a>

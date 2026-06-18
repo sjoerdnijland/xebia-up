@@ -57,6 +57,9 @@ class Module
     #[ORM\Column]
     private int $position = 0;
 
+    #[ORM\Column]
+    private int $durationHours = 4;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -89,6 +92,18 @@ class Module
     public function addSkill(Skill $skill): static { if (!$this->skills->contains($skill)) { $this->skills->add($skill); } return $this; }
     public function getPosition(): int { return $this->position; }
     public function setPosition(int $position): static { $this->position = $position; return $this; }
+    public function getDurationHours(): int { return $this->durationHours; }
+    public function setDurationHours(int $hours): static { $this->durationHours = $hours; return $this; }
+
+    public function getFormattedDuration(): string
+    {
+        $h = $this->durationHours;
+        if ($h % 8 === 0) {
+            $days = $h / 8;
+            return $days === 1 ? '1 day' : "{$days} days";
+        }
+        return "{$h} hours";
+    }
 
     public function isForAllRoles(int $totalRoles): bool
     {

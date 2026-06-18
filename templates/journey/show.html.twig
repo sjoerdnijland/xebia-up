@@ -10,18 +10,19 @@
 <section class="model-intro">
     <div class="model-intro-copy">
         <div class="eyebrow">One model, one language</div>
-        <h1 class="model-intro-title">Build your AI learning journey</h1>
+        <h1 class="model-intro-title">Build your {{ category.name }} learning journey</h1>
         <p class="model-intro-lede">
-            A durable human core, the capabilities for working and leading with AI, and three cross-cutting
-            capabilities — shown as arrows — that run through everything. Every training module maps to the
-            model — so a learner can see exactly which capabilities a session grows.
+            Every training module maps to a skill area — so a learner can see exactly which capabilities a session grows.
         </p>
+        {% if category.slug == 'ai' %}
         <p class="model-intro-cta">
             <a class="model-intro-link" href="{{ path('skill_show', {category: category.slug}) }}">
                 Explore the full {{ category.name }} Skills &amp; Capabilities model →
             </a>
         </p>
+        {% endif %}
     </div>
+    {% if category.slug == 'ai' %}
     <a class="model-intro-wheel" href="{{ path('skill_show', {category: category.slug}) }}"
        aria-label="Open the {{ category.name }} Skills &amp; Capabilities model">
         <img src="/img/skills-capabilities-wheel.svg"
@@ -29,6 +30,7 @@
              width="520" height="520"
              loading="lazy">
     </a>
+    {% endif %}
 </section>
 {% endif %}
 
@@ -135,7 +137,7 @@
                 {% if filtersActive %}
                     {{ totalModules }} module{% if totalModules != 1 %}s{% endif %} match the selected filters.
                 {% else %}
-                    {{ totalModules }} skill-centric module{% if totalModules != 1 %}s{% endif %} across four levels. Use the filters to focus on a role, skill area or level.
+                    {{ totalModules }} module{% if totalModules != 1 %}s{% endif %} across four levels. Use the filters to focus on a role{% if capabilities|length > 0 %}, skill area{% endif %} or level.
                 {% endif %}
             </p>
         </div>
@@ -144,7 +146,17 @@
     {% for level in levels %}
     {% set mods = byLevel[level.slug]|default([]) %}
     {% if mods|length > 0 or not filtersActive %}
-    <div class="path-level">
+    <div class="path-level{% if category.slug == 'ai' %} path-level--no-rail{% endif %}">
+        {% if category.slug != 'ai' %}
+        <div class="level-rail">
+            <div class="level-n">Level {{ level.depth }}</div>
+            <div class="level-name">{{ level.name }}</div>
+            <div class="level-spine" style="background: {{ level.colorHex }}"></div>
+            {% if level.blurb is defined and level.blurb %}
+            <div class="level-blurb">{{ level.blurb }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="level-cards">
             {% if mods|length == 0 %}
             <div class="level-empty">No modules at this level{% if filtersActive %} match the filters{% endif %} yet.</div>
@@ -157,6 +169,11 @@
             <div class="mcard-wrap{% if journey.on %} mcard-wrap--ic{% endif %}{% if journey.on and isSelected %} mcard-wrap--selected{% endif %}">
                 <button class="mcard" data-module-slug="{{ module.slug }}" type="button"{% if mcardCap %} style="--cap-color: {{ mcardCap.color }}"{% endif %}>
                     <span class="mcard-tags">
+                        {% if module.slug starts with 'sc-' %}
+                        <span class="provider-badge">
+                            <img src="/img/scrum-org-logo.png" alt="Scrum.org" class="provider-badge-logo">
+                        </span>
+                        {% endif %}
                         {% if module.isForAllRoles(totalRoles) %}
                         <span class="core-badge">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -183,6 +200,10 @@
                     <span class="mtype-label mtype-label--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}
                     <span class="mcard-desc">{{ module.description }}</span>
+                    <span class="mcard-duration">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {{ module.formattedDuration }}
+                    </span>
                     {% if not journey.on and nextSession %}
                     <span class="mcard-meta">
                         <span class="mcard-date">

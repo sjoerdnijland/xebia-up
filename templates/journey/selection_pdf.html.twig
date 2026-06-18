@@ -26,7 +26,7 @@
     .path .marker {
         width: 30pt;
         vertical-align: top;
-        padding: 0 10pt 14pt 0;
+        padding: 10pt 10pt 14pt 0;
         border-right: 2pt solid #ECE6EE;
     }
     .path .card-cell {
@@ -36,16 +36,13 @@
     .path tr:last-child .marker,
     .path tr:last-child .card-cell { padding-bottom: 0; }
 
-    /* The numbered circle. Dompdf renders inline-block + border-radius
-       reliably; we approximate the .journey-step-marker from the web view. */
     .step-num {
         display: inline-block;
-        width: 28pt; height: 28pt; line-height: 28pt;
+        width: 28pt; height: 21pt; padding-top: 7pt;
         border-radius: 14pt;
         background: #561257; color: #fff;
-        text-align: center; font-weight: 700; font-size: 11pt;
-        /* Offset so the circle sits on the connecting line */
-        margin-right: -16pt; /* pull right edge onto the column border */
+        text-align: center; font-weight: 700; font-size: 11pt; line-height: 1;
+        margin-right: -16pt; vertical-align: top;
     }
 
     .card {
@@ -78,6 +75,13 @@
     }
     .type-chip--self-paced { color: #2c6e49; border-color: #cce6da; background: #f1f8f4; }
     .type-chip--trainer-led { color: #5a3a72; border-color: #e3d6ea; background: #f8f3fa; }
+    .dur-chip {
+        display: inline-block;
+        padding: 1pt 8pt; border-radius: 999pt;
+        font-size: 8pt; font-weight: 600; color: #8A8090;
+        border: 1px solid #ECE6EE; background: #FAFAFB;
+        margin-right: 4pt;
+    }
 
     .card-title { font-weight: 700; font-size: 11.5pt; margin: 2pt 0 4pt; color: #1B0E20; }
     .card-desc { color: #574B5E; font-size: 10pt; margin: 0 0 6pt; }
@@ -86,15 +90,10 @@
     .card-obj li::before {
         content: "·"; position: absolute; left: 4pt; color: #831B84; font-weight: 700;
     }
-    .card-skills { margin-top: 6pt; font-size: 9pt; color: #574B5E; }
-    .skills-label {
-        font-weight: 700; color: #1B0E20;
-        text-transform: uppercase; letter-spacing: 0.04em;
-        font-size: 8pt; margin-right: 4pt;
-    }
+    .card-skills { margin-top: 10pt; padding-top: 8pt; border-top: 1px solid #F0EBF2; }
     .skill {
         display: inline-block;
-        padding: 1pt 8pt 1pt 6pt; margin: 2pt 4pt 0 0;
+        padding: 2pt 8pt 2pt 6pt; margin: 1pt 4pt 1pt 0;
         border-radius: 999pt;
         border: 1px solid #ECE6EE; background: #FAFAFB;
         font-size: 9pt; color: #1B0E20;
@@ -127,7 +126,9 @@
         {% if roleName %}{% if clientName %} · {% endif %}<strong>{{ roleName }}</strong>{% endif %}
         {% if audience|default('') %} · for <strong>{{ audience }}</strong>{% endif %}
         {% if clientName or roleName or audience %} · {% endif %}
-        {{ generatedAt|date('j M Y') }} · {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %}
+        {% set totalHours = 0 %}{% for m in modulesInOrder %}{% set totalHours = totalHours + m.durationHours %}{% endfor %}
+        {% if totalHours % 8 == 0 %}{% set totalDuration = (totalHours / 8) ~ ' day' ~ (totalHours / 8 != 1 ? 's' : '') %}{% else %}{% set totalDuration = totalHours ~ ' hours' %}{% endif %}
+        {{ generatedAt|date('j M Y') }} · {{ totalSelected }} step{% if totalSelected != 1 %}s{% endif %} · {{ totalDuration }}
     </div>
 </div>
 
@@ -156,6 +157,7 @@
                     {% if module.type %}
                     <span class="type-chip type-chip--{{ module.type.slug }}">{{ module.type.name }}</span>
                     {% endif %}
+                    <span class="dur-chip">{{ module.formattedDuration }}</span>
                 </div>
                 <div class="card-title">{{ module.title }}</div>
                 <div class="card-desc">{{ module.description }}</div>
@@ -168,7 +170,6 @@
                 {% endif %}
                 {% if module.skills|length > 0 %}
                 <div class="card-skills">
-                    <span class="skills-label">Skills</span>
                     {% for skill in module.skills %}
                     {% set cap = capabilities[skill.capabilityKey]|default(null) %}
                     {% set skillColor = cap ? cap.color : '#7C1B7B' %}

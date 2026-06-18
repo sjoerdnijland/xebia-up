@@ -6,7 +6,7 @@ use App\Entity\Client;
 use App\Entity\Journey;
 use App\Repository\CategoryRepository;
 use App\Repository\ModuleRepository;
-use App\Service\AiCapabilityMap;
+use App\Service\CapabilityMap;
 use App\Service\JourneyBuilder;
 use App\Service\JourneyCollection;
 use Dompdf\Dompdf;
@@ -214,7 +214,7 @@ class JourneyBuilderController extends AbstractController
         int $id,
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $journey = $this->journeys->get($id);
         if (!$journey) {
@@ -229,7 +229,9 @@ class JourneyBuilderController extends AbstractController
             'categories' => $categoryRepo->findAllOrdered(),
             'modulesInOrder' => $modulesInOrder,
             'totalSelected' => $journey->count(),
-            'capabilities' => $capabilityMap->all(),
+            'capabilities' => $capabilityMap->allForCategory(
+                $modulesInOrder ? ($modulesInOrder[0]->getCategories()->first()?->getSlug() ?? 'ai') : 'ai'
+            ),
             'showSkills' => $this->showSkillsOnOverview,
             'clients' => $this->journeys->allClients(),
         ]);
@@ -240,7 +242,7 @@ class JourneyBuilderController extends AbstractController
         int $id,
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $journey = $this->journeys->get($id);
         if (!$journey) {
@@ -312,7 +314,7 @@ class JourneyBuilderController extends AbstractController
     public function legacySelectionPdf(
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $active = $this->journeys->getActive();
         if (!$active) {
@@ -429,7 +431,7 @@ class JourneyBuilderController extends AbstractController
         Journey $journey,
         ModuleRepository $moduleRepo,
         CategoryRepository $categoryRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $modulesInOrder = $this->modulesInOrder($journey, $moduleRepo);
         $clientName = $journey->getClient()->getName();
@@ -442,6 +444,15 @@ class JourneyBuilderController extends AbstractController
             $logoSrc = 'data:image/svg+xml;base64,' . base64_encode($svg);
         }
 
+        // Merge capabilities from all categories so mixed journeys render correctly
+        $capabilities = array_merge(
+            $capabilityMap->allForCategory('ai'),
+            $capabilityMap->allForCategory('product'),
+            $capabilityMap->allForCategory('agile'),
+            $capabilityMap->allForCategory('cloud'),
+            $capabilityMap->allForCategory('leadership'),
+        );
+
         $html = $this->renderView('journey/selection_pdf.html.twig', [
             'modulesInOrder' => $modulesInOrder,
             'totalSelected' => $journey->count(),
@@ -450,7 +461,7 @@ class JourneyBuilderController extends AbstractController
             'audience' => $journey->getAudience(),
             'generatedAt' => new \DateTimeImmutable(),
             'logoSrc' => $logoSrc,
-            'capabilities' => $capabilityMap->all(),
+            'capabilities' => $capabilities,
         ]);
 
         $options = new Options();

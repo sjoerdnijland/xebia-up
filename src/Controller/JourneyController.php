@@ -8,7 +8,7 @@ use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
 use App\Repository\ModuleTypeRepository;
 use App\Repository\RoleRepository;
-use App\Service\AiCapabilityMap;
+use App\Service\CapabilityMap;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,15 +20,13 @@ class JourneyController extends AbstractController
     public function index(
         CategoryRepository $categoryRepo,
         ModuleRepository $moduleRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $categories = $categoryRepo->findAllOrdered();
 
         $topByCategory = [];
         $capByModule = [];
         foreach ($categories as $cat) {
-            // findByCategory orders by level depth then position, so the first hit
-            // per level is the lowest-positioned module at that level.
             $picksByLevel = [];
             foreach ($moduleRepo->findByCategory($cat) as $m) {
                 $levelSlug = $m->getLevel()->getSlug();
@@ -36,16 +34,13 @@ class JourneyController extends AbstractController
                     $picksByLevel[$levelSlug] = $m;
                 }
             }
-            // Preserve depth order (the array is already in level-depth order from the query).
             $mods = array_values($picksByLevel);
             $topByCategory[$cat->getSlug()] = $mods;
 
-            if ($cat->getSlug() === 'ai') {
-                foreach ($mods as $m) {
-                    $key = $capabilityMap->forModule($m->getSlug());
-                    if ($key !== null) {
-                        $capByModule[$m->getSlug()] = $key;
-                    }
+            foreach ($mods as $m) {
+                $key = $capabilityMap->forModule($m->getSlug());
+                if ($key !== null) {
+                    $capByModule[$m->getSlug()] = $key;
                 }
             }
         }
@@ -53,7 +48,7 @@ class JourneyController extends AbstractController
         return $this->render('home.html.twig', [
             'categories' => $categories,
             'topByCategory' => $topByCategory,
-            'capabilities' => $capabilityMap->all(),
+            'capabilities' => $capabilityMap->allForCategory('ai'),
             'moduleCapabilities' => $capByModule,
         ]);
     }
@@ -67,19 +62,19 @@ class JourneyController extends AbstractController
         RoleRepository $roleRepo,
         ModuleRepository $moduleRepo,
         ModuleTypeRepository $typeRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $cat = $categoryRepo->findOneBy(['slug' => $category]);
         if (!$cat) {
             throw $this->createNotFoundException('Category not found');
         }
 
-        $isAi = $cat->getSlug() === 'ai';
+        $capabilities = $capabilityMap->allForCategory($cat->getSlug());
 
         $activeRoles = $this->multiParam($request, 'role');
         $activeTypes = $this->multiParam($request, 'type');
         $activeLevels = $this->multiParam($request, 'level');
-        $activeCapabilities = $isAi ? $this->multiParam($request, 'capability') : [];
+        $activeCapabilities = $capabilities ? $this->multiParam($request, 'capability') : [];
 
         $allCategories = $categoryRepo->findAllOrdered();
         $levels = $levelRepo->findAllOrdered();
@@ -89,12 +84,10 @@ class JourneyController extends AbstractController
         $allModules = $moduleRepo->findByCategory($cat);
 
         $moduleCapabilities = [];
-        if ($isAi) {
-            foreach ($allModules as $module) {
-                $key = $capabilityMap->forModule($module->getSlug());
-                if ($key !== null) {
-                    $moduleCapabilities[$module->getSlug()] = $key;
-                }
+        foreach ($allModules as $module) {
+            $key = $capabilityMap->forModule($module->getSlug(), $cat->getSlug());
+            if ($key !== null) {
+                $moduleCapabilities[$module->getSlug()] = $key;
             }
         }
 
@@ -123,10 +116,8 @@ class JourneyController extends AbstractController
             $levelCounts[$level->getSlug()] = 0;
         }
         $capabilityCounts = [];
-        if ($isAi) {
-            foreach ($capabilityMap->all() as $key => $_) {
-                $capabilityCounts[$key] = 0;
-            }
+        foreach ($capabilities as $key => $_) {
+            $capabilityCounts[$key] = 0;
         }
         foreach ($allModules as $module) {
             foreach ($module->getRoles() as $r) {
@@ -138,7 +129,7 @@ class JourneyController extends AbstractController
             }
             $levelCounts[$module->getLevel()->getSlug()]
                 = ($levelCounts[$module->getLevel()->getSlug()] ?? 0) + 1;
-            if ($isAi && isset($moduleCapabilities[$module->getSlug()])) {
+            if (isset($moduleCapabilities[$module->getSlug()])) {
                 $cap = $moduleCapabilities[$module->getSlug()];
                 $capabilityCounts[$cap] = ($capabilityCounts[$cap] ?? 0) + 1;
             }
@@ -153,7 +144,6 @@ class JourneyController extends AbstractController
         }
 
         $totalRoles = count($roles);
-        $capabilities = $isAi ? $capabilityMap->all() : [];
 
         $filtersActive = $activeRoles || $activeTypes || $activeLevels || $activeCapabilities;
 

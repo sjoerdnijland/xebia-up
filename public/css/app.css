@@ -379,9 +379,21 @@ p  { color: var(--ink2); font-size: 1rem; }
 
 /* Level band */
 .path-level {
-    padding: 32px 0;
+    display: grid; grid-template-columns: 200px 1fr;
+    gap: 32px; padding: 40px 0;
     border-top: 1px solid var(--line);
 }
+.path-level--no-rail { grid-template-columns: 1fr; }
+
+/* Rail */
+.level-rail { position: relative; padding-left: 16px; }
+.level-n { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; }
+.level-name { font-size: 1.125rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.level-spine {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 2px;
+}
+.level-blurb { font-size: 0.875rem; color: var(--ink2); line-height: 1.5; }
 
 /* Cards grid */
 .level-cards {
@@ -414,15 +426,13 @@ p  { color: var(--ink2); font-size: 1rem; }
 
 .mcard-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 2px; }
 
-/* Module type — subtle label */
+/* Module type — pill matching level/cat pills */
 .mtype-label {
     display: inline-flex; align-items: center; gap: 4px;
-    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
-    padding: 2px 7px; border-radius: 4px;
-    background: var(--bg); color: var(--ink3);
+    font-size: 0.75rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--bg); color: var(--ink2);
     border: 1px solid var(--line);
-    align-self: flex-start;
-    text-transform: uppercase;
 }
 /* Module-type variants stay neutral — capability tags carry the colour. */
 .mcard-title { font-size: 0.9375rem; font-weight: 700; color: var(--ink); line-height: 1.3; }
@@ -507,6 +517,46 @@ body.panel-open { overflow: hidden; }
 
 .panel-title { font-size: 1.25rem; margin-bottom: 8px; padding-right: 40px; }
 .panel-desc { font-size: 0.9375rem; color: var(--ink2); }
+
+/* Duration — card (subtle inline) */
+.mcard-duration {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.75rem; color: var(--ink3);
+    margin-top: auto; padding-top: 4px;
+}
+.mcard-duration svg { color: var(--ink3); flex-shrink: 0; }
+
+/* Duration — journey step tag */
+.step-duration {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.75rem; color: var(--ink3);
+}
+.step-duration svg { color: var(--ink3); flex-shrink: 0; }
+
+/* Duration pill */
+.duration-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; color: var(--ink2);
+    background: var(--bg); border: 1px solid var(--line);
+}
+
+/* Provider pill (panel) */
+.provider-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px 3px 4px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; color: var(--ink2);
+    background: var(--bg); border: 1px solid var(--line);
+}
+.provider-pill-logo { width: 18px; height: 18px; object-fit: contain; display: inline-block; }
+
+/* Provider badge (card) */
+.provider-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px; border-radius: 6px;
+    background: var(--bg); border: 1px solid var(--line);
+}
+.provider-badge-logo { width: 20px; height: 20px; object-fit: contain; display: inline-block; }
 
 .panel-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 28px; }
 
@@ -788,7 +838,9 @@ body.panel-open { overflow: hidden; }
     .intro { padding: 32px 0 24px; }
     .cat-tabs { gap: 4px; }
     .cat-tab { padding: 5px 10px; font-size: 0.8125rem; }
-    .path-level { padding: 24px 0; }
+    .path-level { grid-template-columns: 1fr; gap: 16px; padding: 24px 0; }
+    .level-rail { padding-left: 20px; padding-bottom: 4px; }
+    .level-spine { width: 3px; top: 0; bottom: auto; height: 100%; }
     .toolbar { grid-template-columns: 1fr; gap: 12px; }
 }
 

@@ -7,7 +7,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
 use App\Repository\SkillRepository;
-use App\Service\AiCapabilityMap;
+use App\Service\CapabilityMap;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +29,7 @@ class SkillController extends AbstractController
         SkillRepository $skillRepo,
         LevelRepository $levelRepo,
         ModuleRepository $moduleRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $skill = $skillRepo->findOneBy(['slug' => $slug]);
         if (!$skill) {
@@ -42,7 +42,7 @@ class SkillController extends AbstractController
         return $this->render('skills/_detail.html.twig', [
             'skill' => $skill,
             'levels' => $levelRepo->findAllOrdered(),
-            'capabilities' => $capabilityMap->all(),
+            'capabilities' => $capabilityMap->allForCategory('ai'),
             'fromModule' => $fromModule,
             'inline' => $request->query->getBoolean('inline'),
         ]);
@@ -54,7 +54,7 @@ class SkillController extends AbstractController
         CategoryRepository $categoryRepo,
         LevelRepository $levelRepo,
         SkillRepository $skillRepo,
-        AiCapabilityMap $capabilityMap,
+        CapabilityMap $capabilityMap,
     ): Response {
         $cat = $categoryRepo->findOneBy(['slug' => $category]);
         if (!$cat) {
@@ -98,7 +98,7 @@ class SkillController extends AbstractController
             'activeCategory' => $cat->getSlug(),
             'levels' => $levels,
             'rings' => $rings,
-            'capabilities' => $capabilityMap->all(),
+            'capabilities' => $capabilityMap->allForCategory('ai'),
         ]);
     }
 }
