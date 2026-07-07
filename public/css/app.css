@@ -1817,3 +1817,61 @@ body.journey-modal-open { overflow: hidden; }
 .journey-modal-new-field select:focus { outline: none; border-color: var(--purple); }
 .journey-modal-new-empty { display: none; padding: 14px 16px; }
 .journey-modal-row--new--expanded .journey-modal-new-empty { display: block; }
+
+/* ============================================================
+   Edit mode
+   ============================================================ */
+.edit-mode-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #fef3c7; color: #92400e;
+    border: 1.5px solid #f59e0b; text-decoration: none;
+    font-size: 0.85rem; font-weight: 600;
+}
+.edit-mode-pill:hover { background: #fde68a; }
+
+.edit-form { margin-top: 8px; }
+.edit-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; border: 0; padding: 0; }
+.edit-field-label {
+    font-size: 0.78rem; font-weight: 700; color: var(--ink3);
+    text-transform: uppercase; letter-spacing: 0.03em;
+}
+.edit-field input[type="text"],
+.edit-field textarea,
+.edit-field select {
+    padding: 8px 12px; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--ink); font: inherit; font-size: 0.9375rem;
+}
+.edit-field input[type="text"]:focus,
+.edit-field textarea:focus,
+.edit-field select:focus { outline: none; border-color: var(--purple); }
+
+.edit-check-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px;
+}
+.edit-check { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.edit-check input[type="checkbox"] { flex: 0 0 auto; }
+
+.edit-cat-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--line);
+}
+.edit-cat-row:last-child { border-bottom: 0; }
+.edit-cat-row select { padding: 6px 8px; font-size: 0.85rem; }
+.edit-cat-row select[disabled] { opacity: 0.5; }
+
+.edit-skill-ring-label {
+    margin-top: 8px; padding: 4px 0;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--ink3);
+}
+
+.edit-actions { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.edit-save {
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    background: var(--purple); color: white; border: 0; cursor: pointer;
+    font-weight: 600;
+}
+.edit-save:hover { filter: brightness(1.05); }
+.edit-status { font-size: 0.85rem; color: var(--ink3); }
+.edit-status--err { color: #b91c1c; }

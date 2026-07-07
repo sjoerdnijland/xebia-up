@@ -1,0 +1,24 @@
+slug,title,description,level,categories,roles
+problem-framing,Problem Framing & Opportunity Discovery,"Turn ambiguous business challenges into sharply framed problems and validated AI opportunities worth pursuing.",foundational,"ai; product","pm; po; pjm; ba; ux; dev; sm"
+empathy-storytelling,"Empathy, Communication & Storytelling","Build genuine understanding of users and stakeholders, and craft narratives that align people and move work forward.",foundational,"leadership; product","pm; po; pjm; ba; ux; dev; sm"
+ai-foundations,"AI Foundations, Models & Tooling","A jargon-free grounding in modern AI — how models work, what today's tooling can do, and where it genuinely creates value.",foundational,ai,"pm; po; pjm; ba; ux; dev; sm"
+prompt-context,Prompt Engineering & Context Management,"Get reliably better results from AI by mastering the two levers that matter most — what you ask, and what you show it.",competent,ai,"pm; po; pjm; ba; ux; dev; sm"
+data-literacy,Data Literacy & AI Readiness,"How data is collected, shaped and trusted — the raw material every AI initiative quietly depends on.",foundational,ai,"pm; po; pjm; ba; ux; dev; sm"
+rapid-prototyping,"Rapid Prototyping, Experimentation & UX Design","Shorten the loop from idea to evidence — prototype AI experiences, run honest experiments and design for uncertainty.",competent,"ai; product","pm; po; ux; dev"
+agentic-collaboration,"Agents, Human–Agent Collaboration & Agentic Teams","Design and lead teams where humans and AI agents share the work — with clear roles, guardrails and trust in the middle.",proficient,ai,"pm; po; pjm; dev"
+ai-coding,AI-Assisted Software Engineering,"Ship real code faster and better with autocomplete, chat and agentic coding — from first prompt to production-ready feature.",competent,ai,dev
+ai-qa-testing,AI-Powered Quality Assurance & Testing,"Use AI to generate tests and drive QA — and build the evals that keep non-deterministic systems honest in production.",competent,ai,dev
+responsible-ai,"Responsible AI: Ethics, Safety & Compliance","Turn ethics, safety and the EU AI Act from abstract concerns into practical controls teams can actually follow.",competent,ai,"pm; po; pjm; ba; dev"
+ai-platform-engineering,AI Infrastructure & Platform Engineering,"Build the runtime, delivery pipelines and sandboxes that let AI features and agents run safely, cheaply and reliably at scale.",proficient,"ai; cloud",dev
+ai-security,AI Security & Secure AI Systems,"Harden AI systems against prompt injection, data leakage and jailbreaks — before attackers get there first.",proficient,"ai; cloud","dev; pjm"
+process-reimagination,Business Process Reimagination with AI,"Go beyond automating tasks — redesign end-to-end workflows and operating models around human + AI collaboration.",proficient,"ai; leadership","pm; po; pjm; ba"
+ai-product-design,AI Product Design & Specification,"Translate fuzzy AI ambitions into product specs that engineers, designers and data scientists can actually build against.",competent,"ai; product","pm; po; ux; ba"
+sc-psm,Professional Scrum Master (PSM),Professional Scrum Master certification training (scrum.org).,competent,agile,sm
+sc-psm-a,Professional Scrum Master - Advanced (PSM-A),Advanced Professional Scrum Master certification training (scrum.org).,proficient,agile,sm
+sc-pspo,Professional Scrum Product Owner (PSPO),Professional Scrum Product Owner certification training (scrum.org).,competent,"agile; product",po
+sc-pspo-a,Professional Scrum Product Owner - Advanced (PSPO-A),Advanced Professional Scrum Product Owner certification training (scrum.org).,proficient,"agile; product",po
+sc-psk,Professional Scrum with Kanban (PSK),Applying Kanban practices within a Scrum framework (scrum.org).,competent,agile,"sm; po"
+sc-pal,Professional Agile Leadership (PAL),Professional Agile Leadership certification training (scrum.org).,competent,"agile; leadership","pm; pjm"
+sc-pal-ebm,Professional Agile Leadership - Evidence-Based Management (PAL-EBM),Professional Agile Leadership with Evidence-Based Management (scrum.org).,proficient,"agile; leadership","pm; pjm"
+sc-psfs,Professional Scrum Facilitation Skills (PSFS),Mastering facilitation techniques for Scrum teams (scrum.org).,competent,agile,sm
+sc-ppdv,Professional Product Discovery and Validation (PPDV),Techniques for discovering and validating product opportunities (scrum.org).,competent,"agile; product",po

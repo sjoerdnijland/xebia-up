@@ -11,6 +11,7 @@ services:
             string $siteAccessPassword: '%site_access.password%'
             bool $showSkillsOnOverview: '%feature.show_skills_on_overview%'
             bool $registrationOpen: '%feature.registration_open%'
+            string $adminKey: '%env(ADMIN_KEY)%'
 
     App\:
         resource: '../src/'

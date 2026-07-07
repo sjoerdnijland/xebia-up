@@ -1,5 +1,6 @@
 {% set level = module.level %}
 {% set category = module.categories.first %}
+{% set editable = editable|default(false) %}
 
 <div class="panel-head">
     <button class="panel-close" id="panelClose" type="button" aria-label="Close panel">
@@ -32,6 +33,92 @@
 </div>
 
 <div class="panel-body">
+    {% if editable %}
+    <form class="edit-form" data-edit-form data-slug="{{ module.slug }}">
+        <div class="psec">
+            <h3>Edit module</h3>
+
+            <label class="edit-field">
+                <span class="edit-field-label">Title</span>
+                <input type="text" name="title" value="{{ module.title }}" maxlength="200" required>
+            </label>
+
+            <label class="edit-field">
+                <span class="edit-field-label">Description</span>
+                <textarea name="description" rows="4">{{ module.description }}</textarea>
+            </label>
+
+            <label class="edit-field">
+                <span class="edit-field-label">Level</span>
+                <select name="level_slug">
+                    {% for l in allLevels %}
+                    <option value="{{ l.slug }}"{% if l.slug == module.level.slug %} selected{% endif %}>L{{ l.depth }} · {{ l.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <fieldset class="edit-field">
+                <legend class="edit-field-label">Categories (skill areas by category)</legend>
+                {% set moduleCatSlugs = [] %}
+                {% for c in module.categories %}{% set moduleCatSlugs = moduleCatSlugs|merge([c.slug]) %}{% endfor %}
+                {% for c in allCategories %}
+                {% set isChecked = c.slug in moduleCatSlugs %}
+                <div class="edit-cat-row">
+                    <label class="edit-check">
+                        <input type="checkbox" name="category_slugs[]" value="{{ c.slug }}" data-cat-toggle{% if isChecked %} checked{% endif %}>
+                        <span>{{ c.name }}</span>
+                    </label>
+                    <select name="capabilities[{{ c.slug }}]" data-cat-cap="{{ c.slug }}"{% if not isChecked %} disabled{% endif %}>
+                        <option value="">— select skill area —</option>
+                        {% for capKey, cap in capabilitiesByCategory[c.slug] %}
+                        <option value="{{ capKey }}"{% if moduleCapabilities[c.slug]|default('') == capKey %} selected{% endif %}>{{ cap.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </fieldset>
+
+            <fieldset class="edit-field">
+                <legend class="edit-field-label">Roles</legend>
+                {% set moduleRoleSlugs = [] %}
+                {% for r in module.roles %}{% set moduleRoleSlugs = moduleRoleSlugs|merge([r.slug]) %}{% endfor %}
+                <div class="edit-check-grid">
+                    {% for r in allRoles %}
+                    <label class="edit-check">
+                        <input type="checkbox" name="role_slugs[]" value="{{ r.slug }}"{% if r.slug in moduleRoleSlugs %} checked{% endif %}>
+                        <span>{{ r.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <fieldset class="edit-field">
+                <legend class="edit-field-label">Skills</legend>
+                {% set moduleSkillSlugs = [] %}
+                {% for s in module.skills %}{% set moduleSkillSlugs = moduleSkillSlugs|merge([s.slug]) %}{% endfor %}
+                {% set currentRing = '' %}
+                {% for s in allSkills %}
+                {% if s.ringSlug != currentRing %}
+                    {% if currentRing != '' %}</div>{% endif %}
+                    <div class="edit-skill-ring-label">{{ s.ringName }}</div>
+                    <div class="edit-check-grid">
+                    {% set currentRing = s.ringSlug %}
+                {% endif %}
+                <label class="edit-check">
+                    <input type="checkbox" name="skill_slugs[]" value="{{ s.slug }}"{% if s.slug in moduleSkillSlugs %} checked{% endif %}>
+                    <span>{{ s.name }}</span>
+                </label>
+                {% endfor %}
+                {% if currentRing != '' %}</div>{% endif %}
+            </fieldset>
+
+            <div class="edit-actions">
+                <button type="submit" class="edit-save">Save changes</button>
+                <span class="edit-status" data-edit-status></span>
+            </div>
+        </div>
+    </form>
+    {% else %}
     <div class="psec">
         <h3>What you'll learn</h3>
         {% for objective in module.objectives %}
@@ -134,5 +221,6 @@
         </a>
         {% endfor %}
     </div>
+    {% endif %}
     {% endif %}
 </div>

@@ -135,7 +135,7 @@
         }
 
         // Skill chip clicks open the skill detail in the side panel
-        if (e.target.closest('[data-select-button], [data-select-form]')) return;
+        if (e.target.closest('[data-select-button], [data-select-form], [data-edit-form]')) return;
 
         var skill = e.target.closest('[data-skill-slug]');
         if (skill) {
@@ -161,6 +161,14 @@
         if (jmForm) {
             e.preventDefault();
             submitModalForm(jmForm);
+            return;
+        }
+
+        // Edit-mode module form
+        var editForm = e.target.closest('[data-edit-form]');
+        if (editForm) {
+            e.preventDefault();
+            submitEditForm(editForm);
             return;
         }
 
@@ -257,6 +265,75 @@
     function updateSelectionCount(n) {
         var el = document.querySelector('.selection-count');
         if (el && typeof n !== 'undefined') el.textContent = n;
+    }
+
+    /* ============================================================
+       Edit mode — module edit form
+       ============================================================ */
+
+    // Enable/disable the per-category capability dropdown as its checkbox toggles.
+    document.addEventListener('change', function (e) {
+        var cb = e.target.closest('[data-cat-toggle]');
+        if (!cb) return;
+        var form = cb.closest('[data-edit-form]');
+        if (!form) return;
+        var sel = form.querySelector('[data-cat-cap="' + cssEscape(cb.value) + '"]');
+        if (sel) sel.disabled = !cb.checked;
+    });
+
+    function submitEditForm(form) {
+        var status = form.querySelector('[data-edit-status]');
+        function setStatus(msg, isErr) {
+            if (!status) return;
+            status.textContent = msg;
+            status.classList.toggle('edit-status--err', !!isErr);
+        }
+
+        var fd = new FormData(form);
+        var payload = {
+            title: fd.get('title') || '',
+            description: fd.get('description') || '',
+            level_slug: fd.get('level_slug') || '',
+            category_slugs: fd.getAll('category_slugs[]'),
+            role_slugs: fd.getAll('role_slugs[]'),
+            skill_slugs: fd.getAll('skill_slugs[]'),
+            capabilities: {}
+        };
+        // Only include capability for currently-checked categories.
+        payload.category_slugs.forEach(function (catSlug) {
+            var sel = form.querySelector('[data-cat-cap="' + cssEscape(catSlug) + '"]');
+            if (sel && sel.value) {
+                payload.capabilities[catSlug] = sel.value;
+            }
+        });
+
+        setStatus('Saving…', false);
+        var slug = form.dataset.slug;
+
+        fetch('/admin/modules/' + encodeURIComponent(slug), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (res) {
+            if (!res.ok || !res.data.ok) {
+                setStatus(res.data.error || 'Save failed', true);
+                return;
+            }
+            setStatus('Saved. Reloading…', false);
+            // Reload the panel to show updated read-only fields, then refresh the page
+            // so cards on the underlying page reflect the change.
+            setTimeout(function () { window.location.reload(); }, 400);
+        })
+        .catch(function () {
+            setStatus('Network error', true);
+        });
     }
 
     function cssEscape(s) {

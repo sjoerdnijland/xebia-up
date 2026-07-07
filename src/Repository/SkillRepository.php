@@ -23,4 +23,14 @@ class SkillRepository extends ServiceEntityRepository
             ->addOrderBy('s.name', 'ASC')
             ->getQuery()->getResult();
     }
+
+    /** @return Skill[] */
+    public function findAllOrdered(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->orderBy('s.ringSlug', 'ASC')
+            ->addOrderBy('s.domainSlug', 'ASC')
+            ->addOrderBy('s.position', 'ASC')
+            ->getQuery()->getResult();
+    }
 }

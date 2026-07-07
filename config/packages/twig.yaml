@@ -3,3 +3,4 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         journey: '@App\Service\JourneyBuilder'
+        editMode: '@App\Service\EditMode'
