@@ -22,6 +22,7 @@ class ModuleRepository extends ServiceEntityRepository
             ->join('m.categories', 'cat')
             ->join('m.level', 'l')
             ->where('cat = :category')
+            ->andWhere('m.isActive = true')
             ->setParameter('category', $category)
             ->orderBy('l.depth', 'ASC')
             ->addOrderBy('m.position', 'ASC');
@@ -47,6 +48,7 @@ class ModuleRepository extends ServiceEntityRepository
             ->join('m.categories', 'cat')
             ->join('m.roles', 'r')
             ->where('cat = :category')
+            ->andWhere('m.isActive = true')
             ->setParameter('category', $category)
             ->groupBy('r.slug')
             ->getQuery()->getResult();
@@ -65,6 +67,7 @@ class ModuleRepository extends ServiceEntityRepository
             ->join('m.categories', 'cat')
             ->join('m.type', 't')
             ->where('cat = :category')
+            ->andWhere('m.isActive = true')
             ->setParameter('category', $category)
             ->groupBy('t.slug')
             ->getQuery()->getResult();

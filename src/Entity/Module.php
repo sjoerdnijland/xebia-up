@@ -60,6 +60,9 @@ class Module
     #[ORM\Column]
     private int $durationHours = 4;
 
+    #[ORM\Column]
+    private bool $isActive = true;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -94,6 +97,8 @@ class Module
     public function setPosition(int $position): static { $this->position = $position; return $this; }
     public function getDurationHours(): int { return $this->durationHours; }
     public function setDurationHours(int $hours): static { $this->durationHours = $hours; return $this; }
+    public function isActive(): bool { return $this->isActive; }
+    public function setIsActive(bool $isActive): static { $this->isActive = $isActive; return $this; }
 
     public function getFormattedDuration(): string
     {
