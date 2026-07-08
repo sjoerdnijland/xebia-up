@@ -41,6 +41,10 @@ class Skill
     #[ORM\Column(length: 100)]
     private string $ringName;
 
+    #[ORM\ManyToOne(targetEntity: Ring::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Ring $ring = null;
+
     #[ORM\Column(length: 16)]
     private string $viewScope = 'common';
 
@@ -75,6 +79,8 @@ class Skill
     public function setRingSlug(string $s): static { $this->ringSlug = $s; return $this; }
     public function getRingName(): string { return $this->ringName; }
     public function setRingName(string $n): static { $this->ringName = $n; return $this; }
+    public function getRing(): ?Ring { return $this->ring; }
+    public function setRing(?Ring $r): static { $this->ring = $r; return $this; }
     public function getViewScope(): string { return $this->viewScope; }
     public function setViewScope(string $v): static { $this->viewScope = $v; return $this; }
     public function getPosition(): int { return $this->position; }

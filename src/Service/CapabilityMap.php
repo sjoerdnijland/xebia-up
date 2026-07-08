@@ -10,6 +10,7 @@ class CapabilityMap
         'ai' => [
             'ai-fluency' => ['name' => 'AI Fluency', 'color' => '#C81D8F', 'kind' => 'domain', 'tag' => 'AI Fluency'],
             'ai-powered-work' => ['name' => 'AI-Powered Work', 'color' => '#138C7E', 'kind' => 'domain', 'tag' => 'AI-Powered Work'],
+            'ai-engineering-builders' => ['name' => 'AI Engineering (Builders)', 'color' => '#0F766E', 'kind' => 'domain', 'tag' => 'AI Engineering'],
             'ai-strategizing' => ['name' => 'AI Strategizing', 'color' => '#2A47C9', 'kind' => 'domain', 'tag' => 'AI Strategizing'],
             'transforming-work' => ['name' => 'Transforming Work', 'color' => '#C28A2E', 'kind' => 'domain', 'tag' => 'Transforming Work'],
             'critical-thinking' => ['name' => 'Critical Thinking', 'color' => '#2A1453', 'kind' => 'core', 'tag' => 'Critical Thinking'],
@@ -90,7 +91,7 @@ class CapabilityMap
 
     /** @internal Used by the backfill migration only. */
     public const CAPABILITY_KEYS_BY_CATEGORY = [
-        'ai'         => ['ai-fluency', 'ai-powered-work', 'ai-strategizing', 'transforming-work', 'critical-thinking', 'human-centricity', 'cross-cutting'],
+        'ai'         => ['ai-fluency', 'ai-powered-work', 'ai-engineering-builders', 'ai-strategizing', 'transforming-work', 'critical-thinking', 'human-centricity', 'cross-cutting'],
         'product'    => ['product-strategy', 'discovery', 'delivery', 'product-thinking'],
         'agile'      => ['agile-foundations', 'workflow-improvement', 'facilitation', 'coaching', 'scaling'],
         'cloud'      => ['cloud-foundations', 'architecture', 'security-strategy'],
