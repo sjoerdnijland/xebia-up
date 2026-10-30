@@ -92,13 +92,84 @@ class SkillController extends AbstractController
         // Sort rings by canonical order
         uasort($rings, fn($a, $b) => $a['order'] <=> $b['order']);
 
+        $capabilities = $capabilityMap->allForCategory('ai');
+
         return $this->render('skills/show.html.twig', [
             'category' => $cat,
             'categories' => $allCategories,
             'activeCategory' => $cat->getSlug(),
             'levels' => $levels,
             'rings' => $rings,
-            'capabilities' => $capabilityMap->allForCategory('ai'),
+            'capabilities' => $capabilities,
+            'selectorData' => $this->buildSelectorData($levels, $rings, $capabilities),
         ]);
+    }
+
+    /**
+     * Data for the interactive "select skills & levels" mode on the model page:
+     * every skill with its level descriptions, plus the active modules linked to it.
+     * The client side matches modules to a selected target level.
+     *
+     * @param \App\Entity\Level[] $levels
+     */
+    private function buildSelectorData(array $levels, array $rings, array $capabilities): array
+    {
+        $modules = [];
+        $skillData = [];
+        $order = 0;
+
+        foreach ($rings as $ring) {
+            foreach ($ring['domains'] as $domain) {
+                foreach ($domain['skills'] as $skill) {
+                    /** @var Skill $skill */
+                    $moduleSlugs = [];
+                    foreach ($skill->getModules() as $module) {
+                        if (!$module->isActive()) {
+                            continue;
+                        }
+                        $slug = $module->getSlug();
+                        if (!isset($modules[$slug])) {
+                            $level = $module->getLevel();
+                            $modules[$slug] = [
+                                'slug' => $slug,
+                                'title' => $module->getTitle(),
+                                'description' => $module->getDescription(),
+                                'depth' => $level->getDepth(),
+                                'level' => $level->getSlug(),
+                                'hours' => $module->getDurationHours(),
+                                'duration' => $module->getFormattedDuration(),
+                                'type' => $module->getType()?->getName(),
+                                'position' => $module->getPosition(),
+                            ];
+                        }
+                        $moduleSlugs[] = $slug;
+                    }
+
+                    $cap = $capabilities[$skill->getCapabilityKey()] ?? null;
+                    $skillData[$skill->getSlug()] = [
+                        'slug' => $skill->getSlug(),
+                        'name' => $skill->getName(),
+                        'domain' => $skill->getDomainName(),
+                        'domainSlug' => $skill->getDomainSlug(),
+                        'ring' => $skill->getRingName(),
+                        'color' => $cap['color'] ?? '#7C1B7B',
+                        'order' => $order++,
+                        'descriptions' => $skill->getDescriptions(),
+                        'modules' => $moduleSlugs,
+                    ];
+                }
+            }
+        }
+
+        return [
+            'levels' => array_map(fn($l) => [
+                'slug' => $l->getSlug(),
+                'name' => $l->getName(),
+                'depth' => $l->getDepth(),
+                'color' => $l->getColorHex(),
+            ], $levels),
+            'skills' => $skillData,
+            'modules' => $modules,
+        ];
     }
 }

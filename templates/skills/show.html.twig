@@ -15,6 +15,24 @@
     </div>
 </section>
 
+{% if rings|length > 0 %}
+<section class="ss-intro" data-ss-intro>
+    <div class="ss-intro-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </div>
+    <div class="ss-intro-copy">
+        <h2 class="ss-intro-title">Build a skills profile</h2>
+        <p class="ss-intro-text" data-ss-intro-off>Select the skills that matter for a person or role, pick the level they should reach, and get an overview with the modules we advise.</p>
+        <p class="ss-intro-text" data-ss-intro-on hidden>Click a cell to set the target level for that skill — click it again to clear. Click a level heading to set every skill in that domain at once.</p>
+    </div>
+    <div class="ss-intro-actions">
+        <button type="button" class="ss-toggle" data-ss-toggle aria-pressed="false">
+            <span data-ss-toggle-label>Start selecting</span>
+        </button>
+    </div>
+</section>
+{% endif %}
+
 {% if rings|length == 0 %}
 <section class="skills-empty">
     <h2>Coming soon</h2>
@@ -59,7 +77,7 @@
     {% for domain in ring.domains %}
     {% set cap = capabilities[domain.capabilityKey]|default(null) %}
     {% set domainColor = cap ? cap.color : '#7C1B7B' %}
-    <div class="cap-domain" style="--dom-color: {{ domainColor }}">
+    <div class="cap-domain" style="--dom-color: {{ domainColor }}" data-ss-domain="{{ domain.slug }}">
         <div class="cap-dom-head">
             <span class="cap-pill" style="background: {{ domainColor }}">{{ domain.name }}</span>
             <span class="cap-cnt">{{ domain.skills|length }} skills</span>
@@ -68,19 +86,23 @@
             <div class="cap-matrix">
                 <div class="ch ch-dom"><span class="ch-dom-label">Skill</span></div>
                 {% for level in levels %}
-                <div class="ch">
+                <div class="ch" data-ss-col="{{ level.slug }}" title="Select every {{ domain.name }} skill at {{ level.name }}">
                     <span class="ch-num">{{ level.depth }}</span>
                     <span class="ch-name">{{ level.name }}</span>
                 </div>
                 {% endfor %}
 
                 {% for skill in domain.skills %}
-                <div class="cap-row">
+                <div class="cap-row" data-ss-skill="{{ skill.slug }}">
                     <div class="cap-skill">
+                        <span class="ss-check" aria-hidden="true">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
                         <span class="cap-skill-name">{{ skill.name }}</span>
+                        <span class="ss-skill-level" data-ss-skill-level></span>
                     </div>
                     {% for level in levels %}
-                    <div class="cap-cell">{{ skill.descriptionFor(level.slug) ?? '—' }}</div>
+                    <div class="cap-cell" data-ss-level="{{ level.slug }}" style="--lvl-color: {{ level.colorHex }}">{{ skill.descriptionFor(level.slug) ?? '—' }}</div>
                     {% endfor %}
                 </div>
                 {% endfor %}
@@ -94,5 +116,34 @@
 <div class="skills-foot">
     <p>{{ "now"|date("Y") }} · Xebia · AI Academy</p>
 </div>
+
+{# ---- Interactive selection: tray, overview drawer, data ---- #}
+<div class="ss-tray" data-ss-tray hidden>
+    <div class="ss-tray-inner">
+        <div class="ss-tray-summary">
+            <span class="ss-tray-count" data-ss-count>0</span>
+            <span class="ss-tray-label" data-ss-count-label>skills selected</span>
+            <span class="ss-tray-levels" data-ss-tray-levels></span>
+        </div>
+        <div class="ss-tray-actions">
+            <button type="button" class="btn-ghost" data-ss-clear>Clear</button>
+            <button type="button" class="btn-ghost" data-ss-done>Done selecting</button>
+            <button type="button" class="btn-primary ss-tray-cta" data-ss-open disabled>
+                <span class="ss-cta-long">View overview &amp; advice</span><span class="ss-cta-short">Overview</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="ss-scrim" data-ss-scrim aria-hidden="true"></div>
+<aside class="ss-drawer" data-ss-drawer role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ssDrawerTitle">
+    <div class="ss-drawer-content" data-ss-drawer-content></div>
+</aside>
+
+{% set inJourneys = [] %}
+{% if journey.on %}{% for slug in selectorData.modules|keys %}{% if journey.isSelected(slug) %}{% set inJourneys = inJourneys|merge([slug]) %}{% endif %}{% endfor %}{% endif %}
+<script type="application/json" id="skillSelectorData">{{ selectorData|merge({journeyOn: journey.on, selectedModules: inJourneys, category: category.slug, categoryName: category.name})|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP'))|raw }}</script>
+<script src="/js/skills-select.js" defer></script>
 {% endif %}
 {% endblock %}
