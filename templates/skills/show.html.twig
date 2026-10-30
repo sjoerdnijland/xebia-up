@@ -26,8 +26,17 @@
         <p class="ss-intro-text" data-ss-intro-on hidden>Click a cell to set the target level for that skill — click it again to clear. Click a level heading to set every skill in that domain at once.</p>
     </div>
     <div class="ss-intro-actions">
-        <button type="button" class="ss-toggle" data-ss-toggle aria-pressed="false">
-            <span data-ss-toggle-label>Start selecting</span>
+        <button type="button" class="ss-switch" data-ss-toggle role="switch" aria-checked="false">
+            <span class="ss-switch-track" aria-hidden="true"><span class="ss-switch-thumb"></span></span>
+            <span class="ss-switch-text">
+                <span class="ss-switch-label">Selection mode</span>
+                <span class="ss-switch-state" data-ss-toggle-label>Off</span>
+            </span>
+        </button>
+        <button type="button" class="ss-intro-cta" data-ss-open hidden>
+            View overview &amp; advice
+            <span class="ss-intro-cta-count" data-ss-count>0</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
     </div>
 </section>
@@ -141,9 +150,7 @@
     <div class="ss-drawer-content" data-ss-drawer-content></div>
 </aside>
 
-{% set inJourneys = [] %}
-{% if journey.on %}{% for slug in selectorData.modules|keys %}{% if journey.isSelected(slug) %}{% set inJourneys = inJourneys|merge([slug]) %}{% endif %}{% endfor %}{% endif %}
-<script type="application/json" id="skillSelectorData">{{ selectorData|merge({journeyOn: journey.on, selectedModules: inJourneys, category: category.slug, categoryName: category.name})|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP'))|raw }}</script>
-<script src="/js/skills-select.js" defer></script>
+<script type="application/json" id="skillSelectorData">{{ selectorData|merge({journeyOn: journey.on, category: category.slug, categoryName: category.name})|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP'))|raw }}</script>
+<script src="{{ versioned('/js/skills-select.js') }}" defer></script>
 {% endif %}
 {% endblock %}

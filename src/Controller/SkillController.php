@@ -8,6 +8,7 @@ use App\Repository\LevelRepository;
 use App\Repository\ModuleRepository;
 use App\Repository\SkillRepository;
 use App\Service\CapabilityMap;
+use App\Service\JourneyCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -55,6 +56,7 @@ class SkillController extends AbstractController
         LevelRepository $levelRepo,
         SkillRepository $skillRepo,
         CapabilityMap $capabilityMap,
+        JourneyCollection $journeys,
     ): Response {
         $cat = $categoryRepo->findOneBy(['slug' => $category]);
         if (!$cat) {
@@ -101,7 +103,8 @@ class SkillController extends AbstractController
             'levels' => $levels,
             'rings' => $rings,
             'capabilities' => $capabilities,
-            'selectorData' => $this->buildSelectorData($levels, $rings, $capabilities),
+            'selectorData' => $this->buildSelectorData($levels, $rings, $capabilities)
+                + ['journeys' => $journeys->isOn() ? $journeys->summary() : null],
         ]);
     }
 

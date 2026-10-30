@@ -83,6 +83,12 @@ class JourneyBuilderController extends AbstractController
         ]);
     }
 
+    #[Route('/journeys/summary', name: 'journey_summary', methods: ['GET'])]
+    public function summary(): JsonResponse
+    {
+        return new JsonResponse($this->journeys->isOn() ? $this->journeys->summary() : null);
+    }
+
     #[Route('/journeys/add-modal/{moduleSlug}', name: 'journey_add_modal', methods: ['GET'])]
     public function addModal(string $moduleSlug, ModuleRepository $moduleRepo): Response
     {
@@ -336,6 +342,7 @@ class JourneyBuilderController extends AbstractController
         $payload = [
             'count' => $this->journeys->count(),
             'totalModules' => $this->journeys->totalModules(),
+            'activeId' => $this->journeys->getActive()?->getId(),
         ];
 
         if ($slug !== null) {

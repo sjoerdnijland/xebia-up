@@ -317,6 +317,38 @@ class JourneyCollection
         return $out;
     }
 
+    /**
+     * Compact, JSON-friendly list of all journeys (grouped order: client, then position)
+     * plus the active journey id. Used by the skills-model overview.
+     *
+     * @return array{activeId: ?int, journeys: list<array{id:int,name:string,audience:string,clientId:int,clientName:string,slugs:string[]}>}
+     */
+    public function summary(): array
+    {
+        $journeys = [];
+        foreach ($this->groupedByClient() as $group) {
+            foreach ($group['journeys'] as $j) {
+                $journeys[] = [
+                    'id' => $j->getId(),
+                    'name' => $j->getName(),
+                    'audience' => $j->getAudience(),
+                    'clientId' => $group['client']->getId(),
+                    'clientName' => $group['client']->getName(),
+                    'slugs' => array_values($j->getModuleSlugs()),
+                ];
+            }
+        }
+
+        return [
+            'activeId' => $this->getActive()?->getId(),
+            'journeys' => $journeys,
+            'clients' => array_map(
+                static fn (Client $c) => ['id' => $c->getId(), 'name' => $c->getName()],
+                $this->allClients(),
+            ),
+        ];
+    }
+
     /* --- helpers --- */
 
     private function nextPositionForClient(Client $client): int
